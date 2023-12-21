@@ -1,0 +1,9 @@
+@software{CrackPy,
+  author = {Richard Dvorak, Matěj Prudil, Rostislav Krč, Vlastimil Bílek, Barbara Kucharczyková},
+  doi = {10.5281/zenodo.1234},
+  month = {8},
+  title = {{Image segmentation tool for semnatic segmentation of building material surfaces using deep learning}},
+  url = {https://github.com/Rievil/CrackPy},
+  version = {1.0.0},
+  year = {2024}
+}
