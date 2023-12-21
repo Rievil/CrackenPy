@@ -99,9 +99,6 @@ class CrackManager:
         cbar.ax.set_yticklabels(['Back', 'Matrix', 'Cracks','Pores']) 
         plt.tight_layout()
     
-    # def __del__(self):
-        # self.crack_py.delete()
-
     def __processimgs__(self):
         
         dfr=pd.DataFrame()

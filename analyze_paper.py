@@ -184,10 +184,47 @@ plt.tight_layout()
 plt.savefig(r'Plots\PoreSize.pdf')
 #%%
 from CrackPy import CrackPy
-file=r'Img\ID14_144_Image.png'
 cp=CrackPy()
+#%%
+file=r'Img\ID14_144_Image.png'
+
 mask=cp.GetImg(file)
+cp.MeasureBW()
 
 #%%
+from matplotlib import pyplot as plt
+fig,(ax1,ax2)=plt.subplots(2,1)
+ax1.imshow(cp.img)
 
-plt.imshow(mask)
+ax2.imshow(cp.img)
+ax2.imshow(cp.mask,cmap='jet',alpha=0.4)
+
+
+#%% Erode and dilate operations
+import numpy as np
+import cv2 
+mask=cp.mask
+
+mat_bw=mask[:,:]==1
+mat_bw=mat_bw.astype(np.uint8)
+
+kernel = np.ones((50, 50), np.uint8) 
+mat_bw = cv2.dilate(mat_bw, kernel, iterations=1)
+mat_bw = cv2.erode(mat_bw, kernel) 
+
+
+pore_bw=cp.mask[:,:]==3
+pore_bw=pore_bw.astype(np.uint8)
+
+
+
+plt.imshow(cp.img)
+# plt.imshow(pore_bw,alpha=0.8)
+
+
+img_bwa = cv2.bitwise_and(mat_bw,pore_bw)
+
+plt.imshow(img_bwa,alpha=0.4)
+
+
+

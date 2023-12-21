@@ -156,13 +156,30 @@ class CrackPy:
     def MeasureBW(self):
         back_bw=self.mask[:,:]==0
         back_bw=back_bw.astype(np.uint8)
+        
+        mat_bwo=self.mask[:,:]==1
+        mat_bwo=mat_bwo.astype(np.uint8)
+        
+        kernel = np.ones((50, 50), np.uint8) 
+        mat_bw = cv2.dilate(mat_bwo, kernel, iterations=1)
+        mat_bw = cv2.erode(mat_bw, kernel) 
 
+        
         crack_bw=self.mask[:,:]==2
         crack_bw=crack_bw.astype(np.uint8)
         
+        
+        
         pore_bw=self.mask[:,:]==3
         pore_bw=pore_bw.astype(np.uint8)
-
+        
+        crack_bw = cv2.bitwise_and(mat_bw,crack_bw)
+        pore_bw = cv2.bitwise_and(mat_bw,pore_bw)
+        
+        self.masks={'back':back_bw,'mat':mat_bwo,'crack':crack_bw,
+                    'pore':pore_bw}
+        
+            
         total_area=back_bw.shape[0]*back_bw.shape[1]
         back_area=back_bw.sum()
         spec_area=total_area-back_area
@@ -191,8 +208,7 @@ class CrackPy:
         return result
     
     def __MeasurePores__(self):
-        bw_mask=self.mask[:,:]==3
-        image_pore=bw_mask.astype(np.uint8)
+        image_pore=self.masks['pore']
         label_img_pore = label(image_pore)
         
         props_pore = regionprops_table(label_img_pore, properties=self.reg_props)
@@ -212,8 +228,7 @@ class CrackPy:
         area=dfpores['area'].mean()
         self.bw_stats['avg_pore_distance']=avgdist
         self.bw_stats['avg_pore_size']=area
-        # self.bw_stats['pore_props']=[dfpores]
-        
+
     def SetCropDim(self,dim):
         self.crop_rec=dim
         self.crop=True

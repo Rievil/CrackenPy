@@ -196,7 +196,7 @@ from scipy.spatial.distance import pdist
 imfile=r'Img\ID14_940_Image.png'
 mask=cp.GetImg(imfile)
 cp.GetRatio()
-
+cp.MeasureBW()
 
 
 
@@ -206,8 +206,9 @@ reg_props=('area','centroid','orientation','axis_major_length','axis_minor_lengt
 length=160
 width=40
 
-mask = np.array(cp.mask)
-bw_mask=mask[:,:]==1
+bw_mask=cp.masks['mat']
+# mask = np.array(cp.mask)
+# bw_mask=mask[:,:]==1
 image=bw_mask.astype(np.uint8)
 label_img = label(image)
 
@@ -222,9 +223,9 @@ w_rat=width/dfmat['axis_minor_length'][0]
 m_rat=(l_rat+w_rat)/2
 
 
-bw_mask=mask[:,:]==3
-image_pore=bw_mask.astype(np.uint8)
-label_img_pore = label(image_pore)
+
+label_img_pore = cp.masks['pore']
+image_pore=label_img_pore
 
 props_pore = regionprops_table(label_img_pore, properties=reg_props)
 dfpores=pd.DataFrame(props_pore)
