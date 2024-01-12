@@ -33,13 +33,14 @@ print(torch.__version__)
 import matplotlib.pyplot as plt
 
 #imfile=r'Img\021.jpg'
-imfile=r'Img\name_104.png'
+imfile=r'Img\ID14_144_Image.png'
 mask=cp.GetImg(imfile)
 
+fig,(ax1,ax2)=plt.subplots(2,1)
+ax1.imshow(cp.img)
 
-plt.imshow(cp.img)
-
-plt.imshow(cp.mask,alpha=0.8,cmap='jet')
+ax2.imshow(cp.img)
+ax2.imshow(cp.mask,alpha=0.8,cmap='jet')
 
 #%%
 
