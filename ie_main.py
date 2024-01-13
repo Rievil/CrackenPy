@@ -26,7 +26,7 @@ subdf=file_list.iloc[0:50]
 
 
 #%%
-"https://medium.com/codex/reading-files-fast-with-multi-threading-in-python-ff079f40fe56"
+#"https://medium.com/codex/reading-files-fast-with-multi-threading-in-python-ff079f40fe56"
 
 ies.read_multi()
 #%%

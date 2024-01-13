@@ -26,7 +26,9 @@ import albumentations as A
 
 import time
 import os
-from tqdm.notebook import tqdm
+#from tqdm.notebook import tqdm
+#from tqdm.notebook import tqdm as tqdm
+from tqdm import tqdm
 
 # !pip install -q segmentation-models-pytorch
 # !pip install -q torchsummary
@@ -39,6 +41,11 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # IMAGE_PATH = r'C:\Users\Richard\Vysoké učení technické v Brně\22-02098S - Dokumenty\General\Data\Kamera\DataSets\GACR\GACR_CrackDataset\Images'
 # MASK_PATH = r'C:\Users\Richard\Vysoké učení technické v Brně\22-02098S - Dokumenty\General\Data\Kamera\DataSets\GACR\GACR_CrackDataset\Labels'
+
+#C:\PyTorchData\GACR_CrackDataset
+
+# IMAGE_PATH = r'C:\PyTorchData\GACR_CrackDataset\Images'
+# MASK_PATH = r'C:\PyTorchData\GACR_CrackDataset\Labels'
 
 IMAGE_PATH = r'C:\PyTorchData\GACR_CrackDataset\Images'
 MASK_PATH = r'C:\PyTorchData\GACR_CrackDataset\Labels'
@@ -78,7 +85,7 @@ print('Mask Size', np.asarray(mask).shape)
 
 
 plt.imshow(img)
-plt.imshow(mask, alpha=0.6)
+plt.imshow(mask, alpha=0.6,cmap='jet')
 plt.title('Picture with Mask Appplied')
 plt.show()
 
@@ -329,6 +336,11 @@ sched = torch.optim.lr_scheduler.OneCycleLR(optimizer, max_lr, epochs=epoch,
 history = fit(epoch, model, train_loader, val_loader, criterion, optimizer, sched)
 
 #%%
+histb=history
+histb. pop('lrs', None)
+dfh=pd.DataFrame(histb)
+dfh.to_excel('History.xlsx',sheet_name='ResNet101')
+#%%
 
 torch.save(model.state_dict(), r'Models\resnext101_32x8d_N387_C5_30102023.pt')
 #%%
@@ -344,7 +356,8 @@ fig,(ax1,ax2)=plt.subplots(1,2)
 #%
 
 # img_path=r'C:\PyTorchData\GACR_CrackDataset\Images\ID1_Spec1200_107_Image.png'
-img_path=r'C:\PyTorchData\ConcreteCracksMat\Img\Label_122.png'
+# img_path=r'C:\PyTorchData\ConcreteCracksMat\Img\Label_122.png'
+img_path=r'C:\PyTorchData\GACR_CrackDataset\Images\ID1_Spec400_62_Image.png'
 # img_path=r'C:\PyTorchData\Test\Img5.png'
 
 def GetImg(impath):
@@ -370,7 +383,7 @@ def predict_image(model, image, mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0
 img=GetImg(img_path)
 ax1.imshow(img)
 mask=predict_image(model,img)
-ax2.imshow(mask)
+ax2.imshow(mask,alpha=0.7,cmap='jet')
 plt.savefig("Plots\Example of classification.png")
 #%%
 
@@ -387,40 +400,40 @@ model2.eval()
 import pandas as pd
 
 def plot_loss(history):
-    plt.plot(history['val_loss'], label='val', marker='o')
-    plt.plot( history['train_loss'], label='train', marker='o')
-    
-    
-    plt.title('Loss per epoch'); plt.ylabel('loss');
-    plt.xlabel('epoch')
-    plt.legend(), plt.grid()
-    plt.show()
-    
+    plt.plot(history['val_loss'],'-o', label='Loss validation',color='tab:blue')
+    plt.plot( history['train_loss'],':o', label='Loss training',color='tab:blue')
+
+
 # def plot_score(history):
-    plt.plot(history['train_miou'], label='train_mIoU', marker='*')
-    plt.plot(history['val_miou'], label='val_mIoU',  marker='*')
-    plt.title('Score per epoch'); plt.ylabel('mean IoU')
-    plt.xlabel('epoch')
-    plt.legend(), plt.grid()
-    plt.show()
-    
+    plt.plot(history['train_miou'], label='train $\overline{IoU}$', marker='*',color='tab:orange')
+    plt.plot(history['val_miou'],':*', label='val $\overline{IoU}$',color='tab:orange')
+
+
 # def plot_acc(history):
-    plt.plot(history['train_acc'], label='train_accuracy', marker='*')
-    plt.plot(history['val_acc'], label='val_accuracy',  marker='*')
-    plt.title('Accuracy per epoch'); plt.ylabel('Accuracy')
-    plt.xlabel('epoch')
-    plt.legend(), plt.grid()
-    plt.show()
-    
+    plt.plot(history['train_acc'], label='Train accuracy', marker='*',color='tab:green')
+    plt.plot(history['val_acc'],':*', label='Validation accuracy',color='tab:green')
+
     df=pd.DataFrame({"val_loss":history['val_loss'],"train_loss":history['train_loss'],
                      'train_miou':history['train_miou'],'val_miou':history['val_miou'],
                      'train_acc':history['train_acc'],'val_acc':history['val_acc']})
     
-    df.to_excel("History_resnext101_32x8d_N387_C5_30102023.xlsx")
+
+fig,ax=plt.subplots(1,1,figsize=(8,5))
     
 plot_loss(history)
+plt.legend(loc='center left',bbox_to_anchor=(0.6, 0.3),
+          ncol=1, fancybox=True, shadow=True), plt.grid()
+
+plt.title('Accuracy per epoch'); plt.ylabel('Accuracy')
+plt.xlabel('Epoch')
+
+plt.show()
+
+
 plt.tight_layout()
-plt.savefig(r'Plots\\Loss.svg')
+# plt.savefig('Plots\Loss.pdf')
+fig.savefig('Plots\Training.pdf',dpi=300,bbox_inches = 'tight',
+    pad_inches = 0)
 # plot_score(history)
 # plot_acc(history)
 
@@ -547,7 +560,7 @@ ax3.set_axis_off()
 
 #%%
 
-image2, mask2 = test_set[62]
+image2, mask2 = test_set[15]
 pred_mask2, score2 = predict_image_mask_miou(model, image2, mask2)
 
 fig, (ax1, ax2, ax3) = plt.subplots(1,3, figsize=(19,6))

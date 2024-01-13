@@ -4,7 +4,7 @@ save_data_on_exit = True
 save_history = True
 save_non_project_files = False
 project_type = 'empty-project-type'
-recent_files = ['main.py', 'analyze_paper.py', 'ie_main.py', 'CrackManager.py', 'read_data.py', 'IEFrame.py', 'CrackPy.py', 'read_ie_files.py', 'train_net.py']
+recent_files = ['main.py', 'read_data.py', 'G:\\Můj disk\\Škola\\Měření\\2022\\Ladna\\Out_py\\main.py', 'CrackPy.py', 'train_net.py']
 
 [main]
 version = 0.2.0

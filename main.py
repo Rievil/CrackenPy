@@ -8,13 +8,12 @@ Created on Mon Nov 20 18:37:43 2023
 from CrackPy import CrackPy as CrackPy
 import torch.onnx
 
-imfile=r'Img\ID14_144_Image.png'
+imfile=r'Img\14_WG2_470_Img_cropeed.png'
 
 cp=CrackPy()
 
 #%%
 
-imfile=r'Img\name_104.png'
 mask=cp.GetImg(imfile)
 
 #%% Ulozeni spravne formatovaneho modelu pro matlab
@@ -28,49 +27,322 @@ import torch
 
 print(torch.__version__)
 
-#%%
+#%% Ilustration of segmentation of an sample image
 
 import matplotlib.pyplot as plt
+from mpl_toolkits.axes_grid1 import make_axes_locatable
+import numpy as np
+from matplotlib.colors import ListedColormap
 
-#imfile=r'Img\021.jpg'
-imfile=r'Img\ID14_144_Image.png'
-mask=cp.GetImg(imfile)
+# colors = ["#ffffcc", "#a1dab4", "#41b6c4", "#2c7fb8", "#253494"]
+colors = ["#0994D9", "#28F240", "#F28D28","#41b6c4"]
+my_cmap = ListedColormap(colors, name="my_cmap")
 
-fig,(ax1,ax2)=plt.subplots(2,1)
+fig,ax=plt.subplots(1,1,figsize=(5,4))
+
+ax = plt.gca()
+ax.imshow(cp.img)
+
+im=ax.imshow(cp.mask,alpha=0.7,cmap='jet')
+
+
+divider = make_axes_locatable(ax)
+cax = divider.append_axes("right", size="5%", pad=0.05)
+   
+
+ax.get_xaxis().set_ticks([])
+ax.get_yaxis().set_ticks([])
+ 
+cbar=plt.colorbar(im, cax=cax)
+cbar.set_ticks([0,1,2,3])
+cbar.ax.set_yticklabels(["Back","Matrix","Crack","Pore"])
+cbar.ax.tick_params(labelsize=10)
+
+
+ax.axis("off")
+
+fig.savefig('Plots\DeepLearning_example_mask.png',dpi=300,bbox_inches = 'tight',
+    pad_inches = 0)
+
+plt.show()
+#%%
+
+maskfile=r'Img\14_WG2_470_Mask_cropped.tiff'
+
+
+
+import matplotlib.pyplot as plt
+from mpl_toolkits.axes_grid1 import make_axes_locatable
+import numpy as np
+from matplotlib.colors import ListedColormap
+from PIL import Image
+
+# colors = ["#ffffcc", "#a1dab4", "#41b6c4", "#2c7fb8", "#253494"]
+colors = ["#434343", "#28F240", "#F118A9","#4763F0"]
+my_cmap = ListedColormap(colors, name="my_cmap")
+gtim=Image.open(maskfile)
+
+fig,(ax,ax1,ax2)=plt.subplots(1,3,figsize=(11,4))
+
+ax.imshow(cp.img)
+ax.set_title('Input image')
+ax.get_xaxis().set_ticks([])
+ax.get_yaxis().set_ticks([])
+# ax.axis("off")
+
 ax1.imshow(cp.img)
+ax1.imshow(gtim,alpha=0.7,cmap='jet')
+ax1.set_title('Ground truth')
+ax1.get_xaxis().set_ticks([])
+ax1.get_yaxis().set_ticks([])
+# ax1.axis("off")
+
 
 ax2.imshow(cp.img)
-ax2.imshow(cp.mask,alpha=0.8,cmap='jet')
 
-#%%
+im=ax2.imshow(cp.mask,alpha=0.7,cmap='jet')
 
-import matplotlib.pyplot as plt
-import numpy as np
 
-plt.imshow(cp.img)
-mask=np.array(cp.mask)
-bw_mask=mask[:,:]==2
-bw_mask=bw_mask.astype(np.uint8)
-plt.imshow(bw_mask,alpha=0.8,cmap='jet',interpolation='antialiased')
-#%%
-import matplotlib.pyplot as plt
-import numpy as np
-import cv2
-from skimage.morphology import medial_axis, skeletonize
+divider = make_axes_locatable(ax2)
+cax = divider.append_axes("right", size="5%", pad=0.05)
+   
 
+ax2.get_xaxis().set_ticks([])
+ax2.get_yaxis().set_ticks([])
  
-img = cp.img
+cbar=plt.colorbar(im, cax=cax)
+cbar.set_ticks([0,1,2,3])
+cbar.ax.set_yticklabels(["Background","Matrix","Crack","Pore"])
+# cbar.ax.tick_params(labelsize=10)
+
+ax2.set_title('Segmentation result')
 
 
-mask=np.array(cp.mask)
-bw_mask=mask[:,:]==2
-bw_mask=bw_mask.astype(np.uint8)
+fig.savefig('Plots\Class_Test_Acuracy.pdf',dpi=300,bbox_inches = 'tight',
+    pad_inches = 0)
 
-skel_lee = skeletonize(bw_mask, method='lee')
+plt.show()
 
-plt.imshow(cp.img)        
-plt.imshow(bw_mask,alpha=0.5,cmap='jet')
-plt.imshow(skel_lee,alpha=0.5,cmap='jet',interpolation='antialiased')
+#%% IOU of all calsess on sample img
+import matplotlib.pyplot as plt
+import numpy as np
+from matplotlib.colors import ListedColormap
+import cv2
+classlist=["Back","Matrix","Cracks","Pores"]
+
+fig,axes=plt.subplots(nrows=2, ncols=2,figsize=(10,7))
+
+colors = ["#000000", "#35FF32", "#FF0E91","#0074FF"]
+my_cmap = ListedColormap(colors, name="my_cmap")
+
+mIOU=0
+for class_num,ax in zip([0,1,2,3],axes.flat):
+    ax.imshow(cp.img)
+    
+    # class_num=3
+    
+    mask=np.array(cp.mask)
+    bw_mask=mask[:,:]==class_num
+    
+    gtim_np = np.array(gtim)
+    bw_mask_gt=gtim_np[:,:]==class_num
+    bw_mask_gt=bw_mask_gt.astype(np.uint8)
+    
+    
+    
+    
+    mask_r=np.zeros(bw_mask.shape)
+    cs_mask_sum=0
+    for i in range(0,mask_r.shape[0]):
+        for j in range(0,mask_r.shape[1]):
+            value=0
+            if (bw_mask[i,j]==1) & (bw_mask_gt[i,j]==1):
+                value=1 #true true
+                cs_mask_sum+=1
+            elif (bw_mask[i,j]==1) & (bw_mask_gt[i,j]==0):
+                value=2 #true false
+            elif (bw_mask[i,j]==0) & (bw_mask_gt[i,j]==1):
+                value =3 #false true
+            else:
+                value=0
+          
+            mask_r[i,j]=value
+    
+    
+    seg_mask_sum=bw_mask.sum()
+    gt_mask_sum=bw_mask_gt.sum()
+    
+    IOU=cs_mask_sum/(seg_mask_sum+gt_mask_sum-cs_mask_sum)
+    mIOU=mIOU+IOU
+    im=ax.imshow(mask_r,alpha=0.8,cmap=my_cmap,interpolation='antialiased')
+    
+    
+    ax.get_xaxis().set_ticks([])
+    ax.get_yaxis().set_ticks([])
+    
+    ax.set_title(r"Class: '{:s}' IOU:{:0.2f}".format(classlist[class_num],IOU))
+
+plt.suptitle("Mean intersection over union {:s}: {:0.4f}".format(r"$\overline{IOU}$",mIOU/4))
+
+cbar=fig.colorbar(im, ax=axes.ravel().tolist())
+# cbar=plt.colorbar(im, cax=cax)
+cbar.set_ticks([0,1,2,3])
+cbar.ax.set_yticklabels(["Empty","True Positive","False Positive","False Negative"])
+fig.savefig('Plots\IOU_Example.pdf',dpi=300,bbox_inches = 'tight',
+    pad_inches = 0)
+
+plt.show()
+
+#%% Example of ixel mm conversion
+imfile=r'Img\ID14_940_Image.png'
+mask=cp.GetImg(imfile)
+img=cp.img
+bw_props=cp.MeasureBW()
+
+#%%
+from skimage.measure import label, regionprops, regionprops_table
+import pandas as pd
+import math
+import numpy as np
+from matplotlib import pyplot as plt
+# fig,ax=plt.subplots(1,1)
+
+# ax.imshow(img)
+# ax.imshow(mask,alpha=0.7,cmap='jet')
+# ax.get_xaxis().set_ticks([])
+# ax.get_yaxis().set_ticks([])
+
+reg_props=('area','centroid','orientation','axis_major_length','axis_minor_length','bbox')
+
+length=160
+width=40
+
+
+mask = np.array(mask)
+bw_mask=mask[:,:]==0
+bw_mask=~bw_mask
+
+image=bw_mask.astype(np.uint8)
+label_img = label(image)
+# regions = regionprops(label_img)
+
+props_mat = regionprops_table(label_img, properties=reg_props)
+dfmat=pd.DataFrame(props_mat)
+dfmat.sort_values(by=['area'],ascending=True)
+dfmat=dfmat.reset_index()
+
+#%%
+fig, (ax,ax1) = plt.subplots(nrows=2,ncols=1)
+ax.imshow(image, cmap=plt.cm.gray)
+#
+for index,props in dfmat.iterrows():
+    # y0, x0 = props.centroid-0
+    if props['area']>1000:
+        y0=props['centroid-0']
+        x0=props['centroid-1']
+        
+        
+        orientation = props['orientation']
+        
+        rat1=0.43
+        x0i = x0 - math.cos(orientation) * rat1 * props['axis_minor_length']
+        y0i = y0 + math.sin(orientation) * rat1 * props['axis_minor_length']
+        
+    
+        
+        x1 = x0 + math.cos(orientation) * rat1 * props['axis_minor_length']
+        y1 = y0 - math.sin(orientation) * rat1 * props['axis_minor_length']
+        
+        rat2=0.43
+        x2i = x0 + math.sin(orientation) * rat2 * props['axis_major_length']
+        y2i = y0 + math.cos(orientation) * rat2 * props['axis_major_length']
+        
+        x2 = x0 - math.sin(orientation) * rat2 * props['axis_major_length']
+        y2 = y0 - math.cos(orientation) * rat2 * props['axis_major_length']
+    
+        ax.plot((x0i, x1), (y0i, y1), '-r', linewidth=2.5)
+        ax.plot((x2i, x2), (y2i, y2), '-r', linewidth=2.5)
+        ax.plot(x0, y0, '.g', markersize=15)
+    
+        minr = props['bbox-0']
+        minc = props['bbox-1']
+        maxr = props['bbox-2']
+        maxc = props['bbox-3']
+        
+        
+        bx = (minc, maxc, maxc, minc, minc)
+        by = (minr, minr, maxr, maxr, minr)
+        ax.plot(bx, by, '-g', linewidth=2.5,alpha=0.7)
+    # break
+
+ax.get_xaxis().set_ticks([])
+ax.get_yaxis().set_ticks([])
+
+ax1.imshow(cp.img)
+ax1.imshow(cp.mask,alpha=1,cmap='jet')
+ax1.get_xaxis().set_ticks([])
+ax1.get_yaxis().set_ticks([])
+
+fig.savefig('Plots\Pixel_mm_Ratio.pdf',dpi=300,bbox_inches = 'tight',
+    pad_inches = 0)
+# ax.axis((0, 600, 600, 0))
+plt.show()
+#%%
+df=pd.DataFrame(bw_props,index=[0])
+df=df.T
+df.reset_index(inplace=True)
+
+print(df.to_latex(index=False,
+                  formatters={"name": str.upper},
+                  float_format="{:.1f}".format,
+)) 
+#%%
+from matplotlib import pyplot as plt
+
+from skimage import data
+from skimage.feature import corner_harris, corner_subpix, corner_peaks
+from skimage.transform import warp, AffineTransform
+from skimage.draw import ellipse
+
+
+# =============================================================================
+# # Sheared checkerboard
+# tform = AffineTransform(scale=(1.3, 1.1), rotation=1, shear=0.7,
+#                         translation=(110, 30))
+# image = warp(data.checkerboard()[:90, :90], tform.inverse,
+#               output_shape=(200, 310))
+# # Ellipse
+# rr, cc = ellipse(160, 175, 10, 100)
+# image[rr, cc] = 1
+# # Two squares
+# image[30:80, 200:250] = 1
+# image[80:130, 250:300] = 1
+# =============================================================================
+image=bw_mask
+coords = corner_peaks(corner_harris(image), min_distance=100, threshold_rel=0.02)
+coords_subpix = corner_subpix(image, coords, window_size=13)
+
+
+
+fig, ax = plt.subplots()
+ax.imshow(image, cmap=plt.cm.gray)
+ax.plot(coords[:, 1], coords[:, 0], color='cyan', marker='o',
+        linestyle='None', markersize=6)
+ax.plot(coords_subpix[:, 1], coords_subpix[:, 0], '+r', markersize=15)
+# ax.axis((0, 310, 200, 0))
+plt.show()
+#%%
+dfmat.sort_values(by=['area'],ascending=False)
+dfmat=dfmat.reset_index()
+
+
+l_rat=length/dfmat['axis_major_length'][0]
+w_rat=width/dfmat['axis_minor_length'][0]
+m_rat=(l_rat+w_rat)/2
+pixel_mm_ratio=m_rat
+
+
+
 
 #%%
 

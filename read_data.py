@@ -35,7 +35,7 @@ from multiprocessing import Pool, Process, Manager, freeze_support
 from tqdm import tqdm
 
 
-dfa = pd.read_pickle("IESignals.pkl")  
+dfa = pd.read_pickle("Signals\IESignals.pkl")  
 #%%
 
 dfl=dfa[(dfa['f_type']=='l') & (dfa['sucess']==True)][['filename','ID','age','binder','date','signal']]
@@ -141,6 +141,7 @@ for mask,ax in zip([mask1,mask2,mask3],[ax1,ax2,ax3]):
         ax.plot(x,yl,label=ftype)
     
     ax.set_ylim(1000,14000)
+    # ax.set_xlim(0,20)
     ax.legend()
 
 #%%
