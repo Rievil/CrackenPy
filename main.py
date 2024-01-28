@@ -26,6 +26,22 @@ traced_model.save("Models\TracedModel.pt")
 import torch
 
 print(torch.__version__)
+#%%
+from matplotlib import pyplot as plt
+import cv2
+
+path=r'Img'
+file_img="{:s}\\{:s}".format(path,'ID17_1_Image.jpg')
+file_label="{:s}\\{:s}".format(path,'ID17_1_Label.tif')
+
+
+img = cv2.imread(file_img)
+
+mask = cv2.imread(file_label, cv2.IMREAD_GRAYSCALE)
+# mask = cv2.imread(file_label)
+
+plt.imshow(img)
+plt.imshow(mask,alpha=0.7,cmap='jet')
 
 #%% Ilustration of segmentation of an sample image
 
@@ -65,7 +81,7 @@ fig.savefig('Plots\DeepLearning_example_mask.png',dpi=300,bbox_inches = 'tight',
     pad_inches = 0)
 
 plt.show()
-#%%
+#%% Test accuracy
 
 maskfile=r'Img\14_WG2_470_Mask_cropped.tiff'
 
@@ -466,7 +482,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 from scipy.spatial.distance import pdist
 
-imfile=r'Img\ID14_940_Image.png'
+# imfile=r'Img\ID14_940_Image.png'
 mask=cp.GetImg(imfile)
 cp.GetRatio()
 cp.MeasureBW()
@@ -517,40 +533,4 @@ avgdist=arr.mean()
 area=dfpores['area'].mean()
 
 #%%
-
-dfa=pd.DataFrame({"dist":arr})
-
-#%%
-
-import numpy as np
-from scipy.spatial import Delaunay
-import matplotlib.pyplot as plt
-from scipy.spatial.distance import pdist
-
-points = np.array([dfpores['centroid-1'],dfpores['centroid-0']])
-points=np.rot90(points)
-
-simplices = Delaunay(points).simplices
-plt.imshow(cp.img)
-plt.imshow(image_pore,alpha=0.5)
-plt.triplot(points[:, 0], points[:, 1], simplices)
-plt.scatter(points[:, 0], points[:, 1], color='r')
-
-arr=pdist(points,metric='minkowski')
-
-plt.title("{:0.2f}".format(arr.mean()*cp.pixel_mm_ratio))
-plt.show()
-
-
-#%%
-fig, ax = plt.subplots()
-import seaborn as sns
-
-sns.histplot(data=dfa, x="dist",
-             element="bars", fill=True)
-
-ar_skew=skew(dfpores['area'].values)
-ar_kurt=kurtosis(dfpores['area'].values)
-plt.title("Skew: {:0.3f} skew: {:0.3f}".format(ar_skew,ar_kurt))
-
 
