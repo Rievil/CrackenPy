@@ -5,12 +5,12 @@ Created on Mon Nov 20 18:37:43 2023
 @author: dvorr
 """
 
-from CrackPy import CrackPy as CrackPy
+from CrackPy.CrackPy import CrackPy as cp
 import torch.onnx
 
 imfile=r'Img\14_WG2_470_Img_cropeed.png'
 
-cp=CrackPy()
+# cp=CrackPy()
 
 #%%
 
