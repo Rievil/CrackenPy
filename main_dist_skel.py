@@ -8,12 +8,13 @@ Created on Wed Jan 24 10:52:15 2024
 
 from skimage.morphology import medial_axis, skeletonize
 from matplotlib import pyplot as plt
-from CrackPy import CrackPy as CrackPy
-cp=CrackPy()
+from cracks import cracks as cr
 
+
+cp=cr.CrackPy()
 #%%
 
-cp.GetImg(r'Img\14_WG2_470_Img_cropeed.png')
+cp.GetMask(r'Img\14_WG2_470_Img_cropeed.png')
 #%%
 # cp.GetImg('C:\PyTorchData\Crack_Examples\Img\14_WG2_470_Img_cropeed.png')
 from skimage.morphology import medial_axis, skeletonize
@@ -62,6 +63,10 @@ average = np.mean(thickness[skeleton!=0])
 # thickness = 2*average
 thick = 2 * average
 print("thickness:", thick)
+#%%
+
+plt.imshow(cp.img)
+plt.imshow(thickness,cmap='jet',alpha=0.7)
 
 #%% Get mask for skeleton and for distance map
 

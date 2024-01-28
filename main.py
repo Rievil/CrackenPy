@@ -22,8 +22,11 @@ imfile=r'Img\ID14_470_Image.png'
 pc=cr.CrackPlot(cp)
 #%%
 
-fig=pc.overlay()
+fig=pc.overlay(figsize=(17,6))
 
+#%%
+
+pc.Save(fig,'Example')
 #%%
 
 pc.distancemap()
