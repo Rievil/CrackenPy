@@ -29,12 +29,13 @@ The instalation of the package
 ============================
 $pip install crackpy
 
-The usage of the package
+The usage of the package 
 =============================
-'''
+
+```Python
 from cracks import cracks as cr
 #Cration of the class used for the segmentation
 cp=cr.CrackPy()
-'''
+```
 
 
