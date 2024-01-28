@@ -13,7 +13,7 @@ cp=cr.CrackPy()
 
 
 #%%
-imfile=r'Img\14_WG2_470_Img_cropeed.png'
+imfile=r'Img\ID14_470_Image.png'
 
 
 
@@ -32,7 +32,7 @@ pc.distancemap()
 
 #%%
 
-cp.GetMask(imfile)
+cp.GetMask(r'Img\ID14_470_Image.png')
 #%%
 
 cp.SetRatio(length=160,width=40)

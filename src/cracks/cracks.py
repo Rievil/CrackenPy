@@ -305,11 +305,11 @@ class CrackPlot:
     def __init__(self,crackpy):
         self.CP=crackpy
         
-    def overlay(self):
+    def overlay(self,figsize=[5,4]):
         colors = ["#0027B9", "#0DC9E7", "#E8DD00","#D30101"]
         my_cmap = ListedColormap(colors, name="my_cmap")
 
-        fig,ax=plt.subplots(1,1,figsize=(5,4))
+        fig,ax=plt.subplots(1,1,figsize=figsize)
 
         ax = plt.gca()
         ax.imshow(self.CP.img)
@@ -330,8 +330,13 @@ class CrackPlot:
 
         ax.axis("off")
         plt.show()
+        
         return fig
-
+    
+    def Save(self,fig,name):
+        fig.savefig('Plots\{:s}.png'.format(name),dpi=300,bbox_inches = 'tight',
+            pad_inches = 0)
+        
     def distancemap(self):
 
 
