@@ -10,10 +10,10 @@ from setuptools import Extension, setup, find_packages
 
 setup(
     name='CrackPy',
-    version='0.1.0',
+    version='0.1.2',
     packages=find_packages(where="src"),
     install_requires=[
-    'torch=>2.0.1+cu117',
+    'torch>=2.0.0',
     'pandas>=0.23.3',
     'numpy>=1.14.5',
     'matplotlib>=2.2.0'],

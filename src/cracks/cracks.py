@@ -38,6 +38,7 @@ from skimage.measure import label, regionprops, regionprops_table
 import math
 from scipy.stats import skew, kurtosis
 from scipy.spatial.distance import pdist
+import pkg_resources
 
 class CrackPy:
     def __init__(self):
@@ -50,11 +51,15 @@ class CrackPy:
         self.class_num=5
         
         self.model_type='resnext101_32x8d'
-        self.model_path=r"Models\resnext101_32x8d_N387_C5_30102023.pt"
+        self.default_model=pkg_resources.resource_filename('models', r'resnext101_32x8d_N387_C5_30102023.pt')
+        
+        self.model_path='{}'.format(self.default_model)
+        
         
         self.model = smp.FPN(self.model_type, in_channels=self.img_channels,
-                             classes=self.class_num,activation=None, encoder_depth=self.encoder_depth)  
-        self.model_path=self.model_path
+                             classes=self.class_num,activation=None, encoder_depth=self.encoder_depth) 
+        
+        # self.model_path=
         self.__loadmodel__()
         self.reg_props=('area','centroid','orientation','axis_major_length','axis_minor_length')
         self.pred_mean=[0.485, 0.456, 0.406]
@@ -62,6 +67,7 @@ class CrackPy:
         self.patch_size=416
         self.crop=False
         self.pixel_mm_ratio=1
+        self.mm_ratio_set=False
         
         pass
     
@@ -81,7 +87,6 @@ class CrackPy:
           img = cv2.imdecode(img_buffer, cv2.IMREAD_UNCHANGED)
         else:
           img = cv2.imread(self.impath)
-
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         
     def ClassifyImg(self,impath):
@@ -94,7 +99,8 @@ class CrackPy:
         self.mask=self.__predict_image__(self.img)
         return self.mask
         
-    def GetImg(self,impath):
+    def GetMask(self,impath):
+        self.mm_ratio_set=False
         if impath is not self.impath:
             self.impath=impath
             img = cv2.imread(self.impath)
@@ -102,13 +108,14 @@ class CrackPy:
             # img=cv2.resize(img,(416, 416), interpolation=cv2.INTER_NEAREST)
             # img = PImage.fromarray(img)
             self.img=img
-            mask=self.IterateMask()
-        return mask
+            self.IterateMask()
+        return self.mask
     
     def __del__(self):
         torch.cuda.empty_cache()
         
-    def GetRatio(self,length=None,width=None):
+    def SetRatio(self,length=None,width=None):
+        self.mm_ratio_set=True
         reg_props=('area','centroid','orientation','axis_major_length','axis_minor_length')
 
         if length is None:
@@ -234,7 +241,6 @@ class CrackPy:
         self.crop=True
     
     def IterateMask(self):
-        
             
         imgo = self.img
         sz=imgo.shape
@@ -286,6 +292,95 @@ class CrackPy:
             self.mask=blank_image
             
         return self.mask
+    
+    
+import matplotlib.pyplot as plt
+from mpl_toolkits.axes_grid1 import make_axes_locatable
+import numpy as np
+from matplotlib.colors import ListedColormap
+from mpl_toolkits.axes_grid1 import make_axes_locatable
+from matplotlib.patches import Rectangle
+        
+class CrackPlot:
+    def __init__(self,crackpy):
+        self.CP=crackpy
+        
+    def overlay(self):
+        colors = ["#0027B9", "#0DC9E7", "#E8DD00","#D30101"]
+        my_cmap = ListedColormap(colors, name="my_cmap")
 
+        fig,ax=plt.subplots(1,1,figsize=(5,4))
+
+        ax = plt.gca()
+        ax.imshow(self.CP.img)
+
+        im=ax.imshow(self.CP.mask,alpha=0.7,cmap=my_cmap)
+
+
+        divider = make_axes_locatable(ax)
+        cax = divider.append_axes("right", size="5%", pad=0.05)
+
+        ax.get_xaxis().set_ticks([])
+        ax.get_yaxis().set_ticks([])
+         
+        cbar=plt.colorbar(im, cax=cax)
+        cbar.set_ticks([0,1,2,3])
+        cbar.ax.set_yticklabels(["Back","Matrix","Crack","Pore"])
+        cbar.ax.tick_params(labelsize=10,size=0)
+
+        ax.axis("off")
+        plt.show()
+        return fig
+
+    def distancemap(self):
+
+
+        mask=self.CP.mask
+        crack_bw=mask[:,:]==2
+        crack_bw=crack_bw.astype(np.uint8)
+
+        thresh=crack_bw
+        #Determine the distance transform. 
+        skel = skeletonize(thresh, method='lee')
+        dist = cv2.distanceTransform(thresh, cv2.DIST_L2, 5) 
+        idx=skel==1
+        dist_skel=dist[idx]
+
+          
+
+
+        fig,(ax)=plt.subplots(nrows=1,ncols=1)
+        
+        ax.imshow(self.CP.img)
+        
+        if self.CP.mm_ratio_set==True:
+            im=ax.imshow(dist*self.CP.pixel_mm_ratio,cmap='jet',alpha=0.8) 
+        else:
+            im=ax.imshow(dist,cmap='jet',alpha=0.8) 
+
+       
+
+        divider = make_axes_locatable(ax)
+        cax = divider.append_axes("right", size="5%", pad=0.05)
+
+        ax.get_xaxis().set_ticks([])
+        ax.get_yaxis().set_ticks([])
+         
+        cbar=plt.colorbar(im, cax=cax)
+        # cbar.set_ticks([0,1,2,3])
+        # cbar.ax.set_yticklabels(["Back","Matrix","Crack","Pore"])
+        cbar.ax.tick_params(labelsize=10,size=0)
+
+        ax.axis("off")
+            
+        if self.CP.mm_ratio_set==True:
+            arr_dist=dist[skel==1]*2*self.CP.pixel_mm_ratio
+            plt.suptitle("Mean thickness {:.2f} mm".format(arr_dist.mean()))
+        else:
+            arr_dist=dist[skel==1]*2
+            plt.suptitle("Mean thickness {:.2f} pixels".format(arr_dist.mean()))
+            
+        
+        plt.show()
 
         

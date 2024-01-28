@@ -5,18 +5,39 @@ Created on Mon Nov 20 18:37:43 2023
 @author: dvorr
 """
 
-from CrackPy.CrackPy import CrackPy as cp
-import torch.onnx
 
+from cracks import cracks as cr
+
+
+cp=cr.CrackPy()
+
+
+#%%
 imfile=r'Img\14_WG2_470_Img_cropeed.png'
 
-# cp=CrackPy()
+
 
 #%%
 
-mask=cp.GetImg(imfile)
+pc=cr.CrackPlot(cp)
+#%%
 
+fig=pc.overlay()
+
+#%%
+
+pc.distancemap()
+
+
+
+#%%
+
+cp.GetMask(imfile)
+#%%
+
+cp.SetRatio(length=160,width=40)
 #%% Ulozeni spravne formatovaneho modelu pro matlab
+import torch.onnx
 X = torch.rand(1,3,416,416)
 traced_model = torch.jit.trace(cp.model,X)
 traced_model.save("Models\TracedModel.pt")
@@ -26,6 +47,15 @@ traced_model.save("Models\TracedModel.pt")
 import torch
 
 print(torch.__version__)
+
+#%%
+
+import pkg_resources
+
+model=pkg_resources.resource_filename('models', r'resnext101_32x8d_N387_C5_30102023.pt')
+
+model_exist=pkg_resources.resource_exists('models', r'resnext101_32x8d_N387_C5_30102023.pt')    
+# model_path=pkg_resources.resource_string('models', r'resnext101_32x8d_N387_C5_30102023.pt')
 #%%
 from matplotlib import pyplot as plt
 import cv2
@@ -51,7 +81,7 @@ import numpy as np
 from matplotlib.colors import ListedColormap
 
 # colors = ["#ffffcc", "#a1dab4", "#41b6c4", "#2c7fb8", "#253494"]
-colors = ["#0994D9", "#28F240", "#F28D28","#41b6c4"]
+colors = ["#0027B9", "#0DC9E7", "#E8DD00","#D30101"]
 my_cmap = ListedColormap(colors, name="my_cmap")
 
 fig,ax=plt.subplots(1,1,figsize=(5,4))
@@ -59,7 +89,7 @@ fig,ax=plt.subplots(1,1,figsize=(5,4))
 ax = plt.gca()
 ax.imshow(cp.img)
 
-im=ax.imshow(cp.mask,alpha=0.7,cmap='jet')
+im=ax.imshow(cp.mask,alpha=0.7,cmap=my_cmap)
 
 
 divider = make_axes_locatable(ax)
@@ -72,8 +102,7 @@ ax.get_yaxis().set_ticks([])
 cbar=plt.colorbar(im, cax=cax)
 cbar.set_ticks([0,1,2,3])
 cbar.ax.set_yticklabels(["Back","Matrix","Crack","Pore"])
-cbar.ax.tick_params(labelsize=10)
-
+cbar.ax.tick_params(labelsize=10,size=0)
 
 ax.axis("off")
 
