@@ -41,7 +41,7 @@ from scipy.spatial.distance import pdist
 import pkg_resources
 
 class CrackPy:
-    def __init__(self):
+    def __init__(self,model=0):
         self.impath=''
         self.is_cuda=torch.cuda.is_available()
         self.device = torch.device("cuda" if self.is_cuda else "cpu")
@@ -51,7 +51,8 @@ class CrackPy:
         self.class_num=5
         
         self.model_type='resnext101_32x8d'
-        self.default_model=pkg_resources.resource_filename('models', r'resnext101_32x8d_N387_C5_30102023.pt')
+        self.models=['resnext101_32x8d_N387_C5_30102023','resnext101_32x8d_N387_C5_310124']
+        self.default_model=pkg_resources.resource_filename('models', r'{:s}.pt'.format(self.models[1]))
         
         self.model_path='{}'.format(self.default_model)
         
@@ -78,16 +79,17 @@ class CrackPy:
             self.model.load_state_dict(torch.load(self.model_path, map_location='cpu'))
         self.model.eval()
         
-    def __ReadImg__(self,impath):
-        self.impath=impath
-        if '.heic' in impath.lower():
-          img=WI(filename=impath)
+    def __ReadImg__(self):
+
+        if '.heic' in self.impath.lower():
+          img=WI(filename=self.impath)
           img.format='jpg'
           img_buffer=np.asarray(bytearray(img.make_blob()), dtype=np.uint8)
           img = cv2.imdecode(img_buffer, cv2.IMREAD_UNCHANGED)
         else:
           img = cv2.imread(self.impath)
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        return img
         
     def ClassifyImg(self,impath):
         self.impath=impath
@@ -99,16 +101,23 @@ class CrackPy:
         self.mask=self.__predict_image__(self.img)
         return self.mask
         
-    def GetMask(self,impath):
+    def GetMask(self,impath=None,img=None):
         self.mm_ratio_set=False
-        if impath is not self.impath:
-            self.impath=impath
-            img = cv2.imread(self.impath)
-            img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-            # img=cv2.resize(img,(416, 416), interpolation=cv2.INTER_NEAREST)
-            # img = PImage.fromarray(img)
-            self.img=img
+        if impath is not None:
+            if impath is not self.impath:
+                self.impath=impath
+                # img=
+                # img = cv2.imread(self.impath)
+                # img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+                # img=cv2.resize(img,(416, 416), interpolation=cv2.INTER_NEAREST)
+                # img = PImage.fromarray(img)
+                
+                self.img=self.__ReadImg__()
+                self.IterateMask()
+        elif (impath is None) & (img is not None):
+            self.img=PImage.fromarray(img)
             self.IterateMask()
+            
         return self.mask
     
     def __del__(self):
@@ -132,8 +141,11 @@ class CrackPy:
         bw_mask=mask[:,:]==1
         image=bw_mask.astype(np.uint8)
         label_img = label(image)
-
+        
         props_mat = regionprops_table(label_img, properties=reg_props)
+        
+        self.orientation = props_mat['orientation']
+        
         dfmat=pd.DataFrame(props_mat)
         dfmat.sort_values(by=['area'],ascending=False)
         dfmat=dfmat.reset_index()
@@ -354,7 +366,7 @@ class CrackPlot:
           
 
 
-        fig,(ax)=plt.subplots(nrows=1,ncols=1)
+        fig,(ax1,ax)=plt.subplots(nrows=1,ncols=2,gridspec_kw={'width_ratios': [1, 3]},figsize=(8,5))
         
         ax.imshow(self.CP.img)
         
@@ -386,6 +398,10 @@ class CrackPlot:
             plt.suptitle("Mean thickness {:.2f} pixels".format(arr_dist.mean()))
             
         
+        ax1.boxplot(arr_dist)
+        ax1.get_xaxis().set_ticks([])
+        
         plt.show()
+        return fig
 
         
