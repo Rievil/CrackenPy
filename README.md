@@ -1,4 +1,4 @@
-![](https://github.com/Rievil/CrackPy/blob/main/Plots/Example.png)
+![](https://github.com/Rievil/CrackPy/blob/main/Examples/Plots/Example.png)
 Image segmentation of building material surfaces using deep learning (CrackPy)
 =================================================================
 

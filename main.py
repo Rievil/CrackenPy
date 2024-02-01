@@ -13,7 +13,7 @@ cp=cr.CrackPy(model=1)
 
 
 #%%
-imfile=r'Img\ID14_470_Image.png'
+imfile=r'Examples\Img\ID14_940_Image.png'
 
 
 
@@ -35,7 +35,9 @@ pc.distancemap()
 
 #%%
 
-cp.GetMask(r'Img\ID14_470_Image.png')
+cp.GetMask(imfile)
+#%%
+pc.Save(fig, r'Examples\Plots\Example.png')
 #%%
 
 cp.SetRatio(length=160,width=40)
