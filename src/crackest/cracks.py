@@ -53,7 +53,7 @@ def DownloadModel(key):
         module_path=crackpy_models.__file__
         tar_folder=os.path.dirname(module_path)
         
-        if tar_folder.count('/content/gdrive')==1:
+        if tar_folder.count('/')>0:
             out_file=r'{:s}/{:s}'.format(tar_folder,online_models[key][0])
         else:
             out_file=r'{:s}\{:s}'.format(tar_folder,online_models[key][0])
