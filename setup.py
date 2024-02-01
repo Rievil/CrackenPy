@@ -19,7 +19,8 @@ setup(
     'numpy>=1.14.5',
     'matplotlib>=2.2.0',
     'gdown>=5.0.0',
-    'sknw>=0.15'],
+    'sknw>=0.15',
+    'segmentation_models_pytorch>=0.3.3'],
     package_dir={"":"src"},
     package_data={"": ["*.pt"],"crackpy_models":['resnext101_32x8d_N387_C5_30102023','resnext101_32x8d_N387_C5_310124']}
 )
