@@ -10,7 +10,7 @@ from setuptools import Extension, setup, find_packages
 
 
 setup(
-    name='CrackPy',
+    name='crackpy',
     version='0.1.3',
     packages=find_packages(where="src"),
     install_requires=[
