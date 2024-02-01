@@ -1,0 +1,6 @@
+torch>=2.0.0
+pandas>=0.23.3
+numpy>=1.14.5
+matplotlib>=2.2.0
+gdown>=5.0.0
+sknw>=0.15
