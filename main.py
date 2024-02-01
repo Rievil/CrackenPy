@@ -6,7 +6,7 @@ Created on Mon Nov 20 18:37:43 2023
 """
 
 
-from cracks import cracks as cr
+from crackest import cracks as cr
 
 
 cp=cr.CrackPy(model=1)

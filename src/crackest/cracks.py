@@ -53,7 +53,11 @@ def DownloadModel(key):
         module_path=crackpy_models.__file__
         tar_folder=os.path.dirname(module_path)
         
-        out_file=r'{:s}\{:s}'.format(tar_folder,online_models[key][0])
+        if '/content/gdrive' in tar_folder:
+            out_file=r'{:s}/{:s}'.format(tar_folder,online_models[key][0])
+        else:
+            out_file=r'{:s}\{:s}'.format(tar_folder,online_models[key][0])
+            
         url_id=online_models[key][1]
         print("Downloading deep learing model '{:s}' for module crackpy".format(online_models[key][0].replace('.pt','')))
         gdown.download(id=url_id, output=out_file, quiet=False)
