@@ -8,19 +8,14 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
-from sklearn.model_selection import train_test_split
 
 import torch
-import torch.nn as nn
-from torch.utils.data import Dataset, DataLoader
+
 from torchvision import transforms as T
-import torchvision
-import torch.nn.functional as F
-from torch.autograd import Variable
+
 
 from PIL import Image as PImage
 import cv2
-import albumentations as A
 
 import time
 import os
@@ -29,7 +24,7 @@ from tqdm.notebook import tqdm
 # !pip install -q segmentation-models-pytorch
 # !pip install -q torchsummary
 
-from torchsummary import summary
+
 import segmentation_models_pytorch as smp
 from wand.image import Image as WI
 from skimage.morphology import medial_axis, skeletonize
@@ -40,8 +35,52 @@ from scipy.stats import skew, kurtosis
 from scipy.spatial.distance import pdist
 import pkg_resources
 
+import gdown
+import crackpy_models
+
+
+
+ONLINE_CRACKPY_MODELS={'0':['resnext101_32x8d_N387_C5_30102023.pt','1AtTrLmDf7kmlfEbGEJ5e43_aa0SnGntL'],
+                 '1':['resnext101_32x8d_N387_C5_310124.pt','1qmAv34aIPRLCRGEG3gwbbsYQTYmZpnp5']}
+
+
+def DownloadModel(key):  
+    model=pkg_resources.resource_listdir('crackpy_models', '')
+    online_models=ONLINE_CRACKPY_MODELS
+    count=model.count(online_models[key][0])
+    
+    if count==0:
+        module_path=crackpy_models.__file__
+        tar_folder=os.path.dirname(module_path)
+        
+        out_file=r'{:s}\{:s}'.format(tar_folder,online_models[key][0])
+        url_id=online_models[key][1]
+        print("Downloading deep learing model '{:s}' for module crackpy".format(online_models[key][0].replace('.pt','')))
+        gdown.download(id=url_id, output=out_file, quiet=False)
+
+def UpdateModels():
+    model=pkg_resources.resource_listdir('crackpy_models', '')
+    online_models=ONLINE_CRACKPY_MODELS
+
+
+    count_d=0
+    for key in online_models:
+        count=model.count(online_models[key][0])
+        if count==0:
+            count_d+=1
+            DownloadModel(key)
+
+    if count_d==0:        
+        print("All models are already downloaded")
+    else:
+        print("Downloaded {:d} models".format(count_d))
+    pass
+
+
+
+
 class CrackPy:
-    def __init__(self,model=0):
+    def __init__(self,model=1):
         self.impath=''
         self.is_cuda=torch.cuda.is_available()
         self.device = torch.device("cuda" if self.is_cuda else "cpu")
@@ -51,10 +90,13 @@ class CrackPy:
         self.class_num=5
         
         self.model_type='resnext101_32x8d'
-        self.models=['resnext101_32x8d_N387_C5_30102023','resnext101_32x8d_N387_C5_310124']
-        self.default_model=pkg_resources.resource_filename('models', r'{:s}.pt'.format(self.models[1]))
+
+        DownloadModel(str(model))
+        self.default_model=pkg_resources.resource_filename('crackpy_models', r'{:s}'.format(ONLINE_CRACKPY_MODELS[str(model)][0]))
+        
         
         self.model_path='{}'.format(self.default_model)
+
         
         
         self.model = smp.FPN(self.model_type, in_channels=self.img_channels,
@@ -404,4 +446,3 @@ class CrackPlot:
         plt.show()
         return fig
 
-        

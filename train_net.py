@@ -47,8 +47,8 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 # IMAGE_PATH = r'C:\PyTorchData\GACR_CrackDataset\Images'
 # MASK_PATH = r'C:\PyTorchData\GACR_CrackDataset\Labels'
 
-IMAGE_PATH = r'C:\PyTorchData\GACR_CrackDataset\Images'
-MASK_PATH = r'C:\PyTorchData\GACR_CrackDataset\Labels'
+IMAGE_PATH = r'C:\PyTorchData\GACR_31012024\Images'
+MASK_PATH = r'C:\PyTorchData\GACR_31012024\Labels'
 
 #%%
 
@@ -335,14 +335,14 @@ sched = torch.optim.lr_scheduler.OneCycleLR(optimizer, max_lr, epochs=epoch,
 
 history = fit(epoch, model, train_loader, val_loader, criterion, optimizer, sched)
 
-#%%
+#%
 histb=history
 histb. pop('lrs', None)
 dfh=pd.DataFrame(histb)
-dfh.to_excel('History.xlsx',sheet_name='ResNet101')
-#%%
+dfh.to_excel('History_31012024.xlsx',sheet_name='ResNet101_31012024')
+#%
 
-torch.save(model.state_dict(), r'Models\resnext101_32x8d_N387_C5_30102023.pt')
+torch.save(model.state_dict(), r'resnext101_32x8d_N387_C5_310124.pt')
 #%%
 
 # model.load_state_dict(torch.load('Unet-Mobilenet_Cracks.pt'))
@@ -432,7 +432,7 @@ plt.show()
 
 plt.tight_layout()
 # plt.savefig('Plots\Loss.pdf')
-fig.savefig('Plots\Training.pdf',dpi=300,bbox_inches = 'tight',
+fig.savefig('Plots\Training_310124.pdf',dpi=300,bbox_inches = 'tight',
     pad_inches = 0)
 # plot_score(history)
 # plot_acc(history)

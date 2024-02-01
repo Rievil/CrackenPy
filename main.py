@@ -9,7 +9,7 @@ Created on Mon Nov 20 18:37:43 2023
 from cracks import cracks as cr
 
 
-cp=cr.CrackPy()
+cp=cr.CrackPy(model=1)
 
 
 #%%
@@ -51,14 +51,79 @@ import torch
 
 print(torch.__version__)
 
+#%% List all models (files) of crackpy
+import gdown
+import pkg_resources
+import crackpy_models
+import os
+
+model=pkg_resources.resource_listdir('crackpy_models', '')
+online_models={'0':['resnext101_32x8d_N387_C5_30102023.pt','1AtTrLmDf7kmlfEbGEJ5e43_aa0SnGntL'],
+             '1':['resnext101_32x8d_N387_C5_310124.pt','1qmAv34aIPRLCRGEG3gwbbsYQTYmZpnp5']}
+
+check=[]
+count_d=0
+for key in online_models:
+    count=model.count(online_models[key][0])
+    if count==0:
+        count_d+=1
+        ids = "0B9P1L--7Wd2vNm9zMTJWOGxobkU"
+        module_path=crackpy_models.__file__
+        tar_folder=os.path.dirname(module_path)
+        
+        out_file=r'{:s}\{:s}'.format(tar_folder,online_models[key][0])
+        url_id=online_models[key][1]
+        print("Downloading deep learing model '{:s}' for module crackpy".format(online_models[key][0].replace('.pt','')))
+        gdown.download(id=url_id, output=out_file, quiet=False)
+
+if count_d==0:        
+    print("All models are already downloaded")
+else:
+    print("Downloaded {:d} models".format(count_d))
+        
+#%%
+
+from cracks import cracks as cr
+
+cr.UpdateModels()
+
+# model_exist=pkg_resources.resource_exists('models', r'resnext101_32x8d_N387_C5_30102023.pt')    
+# model_path=pkg_resources.resource_string('models', r'resnext101_32x8d_N387_C5_30102023.pt')
+
+#%%
+import os
+import crackpy_models  # Replace 'your_module' with the actual module name
+
+module_path = crackpy_models.__file__
+print(f"Path of the module: {module_path}")
+
+# To get the directory containing the module
+module_directory = os.path.dirname(module_path)
+print(f"Directory of the module: {module_directory}")
 #%%
 
 import pkg_resources
 
-model=pkg_resources.resource_filename('models', r'resnext101_32x8d_N387_C5_30102023.pt')
+def list_package_resources(package_name):
+    try:
+        # Get the distribution object for the specified package
+        distribution = pkg_resources.get_distribution(package_name)
+        
+        # Get the path to the package
+        package_path = distribution.location
+        
+        # List all the resources in the package
+        resources = pkg_resources.resource_listdir(package_name, '')
+        
+        # Print or process the list of resources
+        for resource in resources:
+            print(resource)
 
-model_exist=pkg_resources.resource_exists('models', r'resnext101_32x8d_N387_C5_30102023.pt')    
-# model_path=pkg_resources.resource_string('models', r'resnext101_32x8d_N387_C5_30102023.pt')
+    except pkg_resources.DistributionNotFound:
+        print(f"Package '{package_name}' not found.")
+
+# Replace 'your_package_name' with the actual name of your package
+list_package_resources('models')
 #%%
 from matplotlib import pyplot as plt
 import cv2
