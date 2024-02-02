@@ -38,7 +38,7 @@ import pkg_resources
 import gdown
 import crackpy_models
 
-
+os.environ["KMP_DUPLICATE_LIB_OK"]="TRUE"
 
 ONLINE_CRACKPY_MODELS={'0':['resnext101_32x8d_N387_C5_30102023.pt','1AtTrLmDf7kmlfEbGEJ5e43_aa0SnGntL'],
                  '1':['resnext101_32x8d_N387_C5_310124.pt','1qmAv34aIPRLCRGEG3gwbbsYQTYmZpnp5']}
