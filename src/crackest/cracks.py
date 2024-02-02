@@ -113,10 +113,16 @@ class CrackPy:
         self.pred_std=[0.229, 0.224, 0.225]
         self.patch_size=416
         self.crop=False
+        self.img_read=False
         self.pixel_mm_ratio=1
         self.mm_ratio_set=False
+        self.has_mask=False
         
         pass
+    
+    def GetImg(self,impath):
+        self.impath=impath
+        self.__ReadImg__()
     
     def __loadmodel__(self):
         if self.is_cuda==True:
@@ -126,7 +132,7 @@ class CrackPy:
         self.model.eval()
         
     def __ReadImg__(self):
-
+        
         if '.heic' in self.impath.lower():
           img=WI(filename=self.impath)
           img.format='jpg'
@@ -135,7 +141,11 @@ class CrackPy:
         else:
           img = cv2.imread(self.impath)
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-        return img
+        self.img=img
+        self.img_read=True
+        self.has_mask=False
+        self.mask=[]
+        # return img
         
     def ClassifyImg(self,impath):
         self.impath=impath
@@ -145,6 +155,7 @@ class CrackPy:
         img = PImage.fromarray(img)
         self.img=img
         self.mask=self.__predict_image__(self.img)
+        self.img
         return self.mask
         
     def GetMask(self,impath=None,img=None):
@@ -297,10 +308,23 @@ class CrackPy:
     def SetCropDim(self,dim):
         self.crop_rec=dim
         self.crop=True
+        
     
+    def CropImg(self):
+        if self.crop==True:
+            dim=self.crop_rec
+            imgo=self.img[dim[0]:dim[1],dim[2]:dim[3]]
+            self.img_crop=imgo            
+            if self.has_mask==True:
+                self.mask=self.mask[dim[0]:dim[1],dim[2]:dim[3]]
+            
     def IterateMask(self):
             
-        imgo = self.img
+        if self.crop==False:
+            imgo=self.img
+        else:
+            imgo=self.img_crop
+        
         sz=imgo.shape
         step_size=self.patch_size
         
@@ -340,14 +364,12 @@ class CrackPy:
                 
                 mask=self.__predict_image__(cropped_image)
                 blank_image[xstart:xstop, ystart:ystop]=mask
-                
+       
+        self.mask=blank_image
+        self.has_mask=True
+        
         if self.crop==True:
-            dim=self.crop_rec
-            imgo=self.img[dim[0]:dim[1],dim[2]:dim[3]]
-            self.img_crop=imgo
-            self.mask=blank_image[dim[0]:dim[1],dim[2]:dim[3]]
-        else:        
-            self.mask=blank_image
+            self.CropImg()
             
         return self.mask
     
@@ -362,6 +384,15 @@ from matplotlib.patches import Rectangle
 class CrackPlot:
     def __init__(self,crackpy):
         self.CP=crackpy
+    
+    def show_img(self):
+        fig,ax=plt.subplots(1,1)
+        
+        ax.imshow(self.CP.img)
+        
+        ax.get_xaxis().set_ticks([])
+        ax.get_yaxis().set_ticks([])
+        
         
     def overlay(self,figsize=[5,4]):
         colors = ["#0027B9", "#0DC9E7", "#E8DD00","#D30101"]
