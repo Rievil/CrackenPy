@@ -142,8 +142,11 @@ class CrackPy:
           img = cv2.imread(self.impath)
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         self.img=img
+        
+        self.crop=False
         self.img_read=True
         self.has_mask=False
+        
         self.mask=[]
         # return img
         
@@ -381,21 +384,27 @@ class CrackPlot:
     def show_img(self):
         fig,ax=plt.subplots(1,1)
         
-        ax.imshow(self.CP.img)
+        if self.CP.crop==False:
+            ax.imshow(self.CP.img)
+        else:
+            ax.imshow(self.CP.img_crop)
         
         ax.get_xaxis().set_ticks([])
         ax.get_yaxis().set_ticks([])
-        
+        return fig
         
     def overlay(self,figsize=[5,4]):
         colors = ["#0027B9", "#0DC9E7", "#E8DD00","#D30101"]
         my_cmap = ListedColormap(colors, name="my_cmap")
 
         fig,ax=plt.subplots(1,1,figsize=figsize)
-
+        
         ax = plt.gca()
-        ax.imshow(self.CP.img)
-
+        if self.CP.crop==False:
+            ax.imshow(self.CP.img)
+        else:
+            ax.imshow(self.CP.img_crop)
+            
         im=ax.imshow(self.CP.mask,alpha=0.7,cmap=my_cmap)
 
 
