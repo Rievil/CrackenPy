@@ -163,16 +163,12 @@ class CrackPy:
         if impath is not None:
             if impath is not self.impath:
                 self.impath=impath
-                # img=
-                # img = cv2.imread(self.impath)
-                # img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-                # img=cv2.resize(img,(416, 416), interpolation=cv2.INTER_NEAREST)
-                # img = PImage.fromarray(img)
-                
                 self.img=self.__ReadImg__()
                 self.IterateMask()
         elif (impath is None) & (img is not None):
             self.img=PImage.fromarray(img)
+            self.IterateMask()
+        elif self.img_read==True: #Img already read?
             self.IterateMask()
             
         return self.mask
@@ -368,9 +364,6 @@ class CrackPy:
         self.mask=blank_image
         self.has_mask=True
         
-        if self.crop==True:
-            self.CropImg()
-            
         return self.mask
     
     
