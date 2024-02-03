@@ -173,7 +173,6 @@ class CrackPy:
         elif self.img_read==True: #Img already read?
             self.IterateMask()
             
-        return self.mask
     
     def __del__(self):
         torch.cuda.empty_cache()
@@ -366,7 +365,6 @@ class CrackPy:
         self.mask=blank_image
         self.has_mask=True
         
-        return self.mask
     
     
 import matplotlib.pyplot as plt
