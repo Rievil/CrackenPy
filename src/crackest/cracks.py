@@ -393,7 +393,7 @@ class CrackPlot:
         return fig
         
     def overlay(self,figsize=[5,4]):
-        colors = ["#0027B9", "#0DC9E7", "#E8DD00","#D30101"]
+        colors = ["#25019E", "#717171", "#27C504 ","#ECFF00"]
         my_cmap = ListedColormap(colors, name="my_cmap")
 
         fig,ax=plt.subplots(1,1,figsize=figsize)
@@ -404,7 +404,7 @@ class CrackPlot:
         else:
             ax.imshow(self.CP.img_crop)
             
-        im=ax.imshow(self.CP.mask,alpha=0.7,cmap=my_cmap)
+        im=ax.imshow(self.CP.mask,alpha=0.8,cmap=my_cmap)
 
 
         divider = make_axes_locatable(ax)
