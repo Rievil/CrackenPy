@@ -164,10 +164,9 @@ class CrackPy:
     def GetMask(self,impath=None,img=None):
         self.mm_ratio_set=False
         if impath is not None:
-            if impath is not self.impath:
-                self.impath=impath
-                self.img=self.__ReadImg__()
-                self.IterateMask()
+            self.impath=impath
+            self.__ReadImg__()
+            self.IterateMask()
         elif (impath is None) & (img is not None):
             self.img=PImage.fromarray(img)
             self.IterateMask()
