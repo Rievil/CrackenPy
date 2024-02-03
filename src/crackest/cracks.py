@@ -226,35 +226,47 @@ class CrackPy:
             masked = masked.cpu().squeeze(0)
         return masked
     
-    def MeasureBW(self):
+    def masks(self):
+        self.__SeparateMask__()
+        return self.masks
+    
+    def __SeparateMask__(self):
         back_bw=self.mask[:,:]==0
         back_bw=back_bw.astype(np.uint8)
         
         mat_bwo=self.mask[:,:]==1
         mat_bwo=mat_bwo.astype(np.uint8)
         
-        kernel = np.ones((50, 50), np.uint8) 
-        mat_bw = cv2.dilate(mat_bwo, kernel, iterations=1)
-        mat_bw = cv2.erode(mat_bw, kernel) 
-
-        
         crack_bw=self.mask[:,:]==2
         crack_bw=crack_bw.astype(np.uint8)
-        
-        
-        
+
         pore_bw=self.mask[:,:]==3
         pore_bw=pore_bw.astype(np.uint8)
         
-        crack_bw = cv2.bitwise_and(mat_bw,crack_bw)
-        pore_bw = cv2.bitwise_and(mat_bw,pore_bw)
-        
-        self.masks={'back':back_bw,'mat':mat_bwo,'crack':crack_bw,
+        self.masks={'back':back_bw,
+                    'spec':~back_bw,
+                    'mat':mat_bwo,
+                    'crack':crack_bw,
                     'pore':pore_bw}
         
+    def MeasureBW(self):
+        self.__SeparateMask__()
+        
+        kernel = np.ones((50, 50), np.uint8) 
+        mat_bw = cv2.dilate(self.masks['mat'], kernel, iterations=1)
+        mat_bw = cv2.erode(mat_bw, kernel) 
+
+        
+        
+        
+        crack_bw = cv2.bitwise_and(mat_bw,self.masks['crack'])
+        pore_bw = cv2.bitwise_and(mat_bw,self.masks['pore'])
+        
+
+        
             
-        total_area=back_bw.shape[0]*back_bw.shape[1]
-        back_area=back_bw.sum()
+        total_area=self.masks['back'].shape[0]*self.masks['back'].shape[1]
+        back_area=self.masks['back'].sum()
         spec_area=total_area-back_area
         crack_area=crack_bw.sum()
         pore_area=pore_bw.sum()
