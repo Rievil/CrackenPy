@@ -377,6 +377,9 @@ from matplotlib.patches import Rectangle
 class CrackPlot:
     def __init__(self,crackpy):
         self.CP=crackpy
+        colors = ["#25019E", "#717171", "#CD0000","#ECFF00"]
+        my_cmap = ListedColormap(colors, name="my_cmap")
+        self.cmap=my_cmap
     
     def show_img(self):
         fig,ax=plt.subplots(1,1)
@@ -388,11 +391,10 @@ class CrackPlot:
         
         ax.get_xaxis().set_ticks([])
         ax.get_yaxis().set_ticks([])
-        return fig
+        self.fig=fig
         
     def overlay(self,figsize=[5,4]):
-        colors = ["#25019E", "#717171", "#27C504 ","#ECFF00"]
-        my_cmap = ListedColormap(colors, name="my_cmap")
+
 
         fig,ax=plt.subplots(1,1,figsize=figsize)
         
@@ -402,7 +404,7 @@ class CrackPlot:
         else:
             ax.imshow(self.CP.img_crop)
             
-        im=ax.imshow(self.CP.mask,alpha=0.8,cmap=my_cmap)
+        im=ax.imshow(self.CP.mask,alpha=0.8,cmap='jet')
 
 
         divider = make_axes_locatable(ax)
@@ -418,8 +420,8 @@ class CrackPlot:
 
         ax.axis("off")
         plt.show()
+        self.fig=fig
         
-        return fig
     
     def Save(self,fig,name):
         fig.savefig('{:s}'.format(name),dpi=300,bbox_inches = 'tight',
@@ -442,7 +444,7 @@ class CrackPlot:
           
 
 
-        fig,(ax1,ax)=plt.subplots(nrows=1,ncols=2,gridspec_kw={'width_ratios': [1, 3]},figsize=(8,5))
+        fig,ax=plt.subplots(nrows=1,ncols=1,figsize=(8,5))
         
         ax.imshow(self.CP.img)
         
@@ -460,23 +462,22 @@ class CrackPlot:
         ax.get_yaxis().set_ticks([])
          
         cbar=plt.colorbar(im, cax=cax)
-        # cbar.set_ticks([0,1,2,3])
-        # cbar.ax.set_yticklabels(["Back","Matrix","Crack","Pore"])
         cbar.ax.tick_params(labelsize=10,size=0)
 
         ax.axis("off")
             
+
+
         if self.CP.mm_ratio_set==True:
             arr_dist=dist[skel==1]*2*self.CP.pixel_mm_ratio
             plt.suptitle("Mean thickness {:.2f} mm".format(arr_dist.mean()))
+            cbar.ax.set_label('Thickness [mm]')
         else:
             arr_dist=dist[skel==1]*2
             plt.suptitle("Mean thickness {:.2f} pixels".format(arr_dist.mean()))
+            cbar.ax.set_ylabel('Thickness [px]')
             
         
-        ax1.boxplot(arr_dist)
-        ax1.get_xaxis().set_ticks([])
-        
         plt.show()
-        return fig
+        self.fig=fig
 
