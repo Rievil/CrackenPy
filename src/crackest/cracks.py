@@ -164,13 +164,21 @@ class CrackPy:
     def GetMask(self,impath=None,img=None):
         self.mm_ratio_set=False
         if impath is not None:
+            print('reading1')
             self.impath=impath
             self.__ReadImg__()
             self.IterateMask()
         elif (impath is None) & (img is not None):
-            self.img=PImage.fromarray(img)
+            print('reading2')
+            
+        
+            self.img=cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+            self.imgo=self.img
+            self.crop=False
+            self.img_read=True
             self.IterateMask()
         elif self.img_read==True: #Img already read?
+            print('reading3')
             self.IterateMask()
             
     
