@@ -2,6 +2,10 @@
 """
 Created on Mon Nov 20 18:20:30 2023
 
+#To do:
+#self.GetMask -> Add reading image from url form web
+
+
 @author: dvorr
 """
 import numpy as np 
@@ -164,12 +168,12 @@ class CrackPy:
     def GetMask(self,impath=None,img=None):
         self.mm_ratio_set=False
         if impath is not None:
-            print('reading1')
+            # print('reading1')
             self.impath=impath
             self.__ReadImg__()
             self.IterateMask()
         elif (impath is None) & (img is not None):
-            print('reading2')
+            # print('reading2')
             
         
             self.img=cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
@@ -178,8 +182,10 @@ class CrackPy:
             self.img_read=True
             self.IterateMask()
         elif self.img_read==True: #Img already read?
-            print('reading3')
+            # print('reading3')
             self.IterateMask()
+            
+        
             
     
     def __del__(self):
@@ -234,7 +240,7 @@ class CrackPy:
             masked = masked.cpu().squeeze(0)
         return masked
     
-    def masks(self):
+    def SepMasks(self):
         self.__SeparateMask__()
         return self.masks
     
