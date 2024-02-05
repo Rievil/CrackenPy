@@ -240,6 +240,9 @@ class CrackPy:
     
     def __SeparateMask__(self):
         back_bw=self.mask[:,:]==0
+        spec_bw=~back_bw
+        
+        spec_bw=spec_bw.astype(np.uint8)
         back_bw=back_bw.astype(np.uint8)
         
         mat_bwo=self.mask[:,:]==1
@@ -252,7 +255,7 @@ class CrackPy:
         pore_bw=pore_bw.astype(np.uint8)
         
         self.masks={'back':back_bw,
-                    'spec':~back_bw,
+                    'spec':spec_bw,
                     'mat':mat_bwo,
                     'crack':crack_bw,
                     'pore':pore_bw}
