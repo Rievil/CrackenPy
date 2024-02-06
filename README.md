@@ -25,9 +25,9 @@ The advance metrics of the cracks are:
 
 Tese metrics can be observed all at once, or just some of the metrics can be picked. If the time evolution of one speicmen is adressed the acquring of the metrics can be optimilized, to focus only for the metrics important for the given experiment.
 
-The instalation of the package
+The instalation of the package (private package)
 ============================
-$pip install crackpy
+$pip install git+https://crackpy_pip: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@github.com/Rievil/CrackPy
 
 The usage of the package 
 =============================
