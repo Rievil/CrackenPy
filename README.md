@@ -35,9 +35,19 @@ The usage of the package
 =============================
 
 ```Python
-from cracks import cracks as cr
-#Cration of the class used for the segmentation
-cp=cr.CrackPy()
+from crackest import cracks as cr
+ 
+#%Model 1 optimized also for pores
+#Model 0 is optimized for fine cracks
+cp=cr.CrackPy(model=1) #
+
+#Read a file from examples
+imfile=r'Examples\Img\ID14_940_Image.png' 
+cp.GetMask(imfile)
+
+#Plot the example
+pc=cr.CrackPlot(cp)
+fig=pc.overlay()
 ```
 
 
