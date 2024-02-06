@@ -8,7 +8,7 @@ _Please cite our research paper using the sidebar button when using CrackPy in y
 > Dvorak, R., xxx https://doi.org/10.xxxx
 
 Features
-=================================================================
+============================
 Image segmentation of given surface of the test specimen. The photo of the specimen must have minimum resolution of 416 $\times$ 416 pixels.
 The specimens should be placed on close-to-black background. The surface plane of the specimen should be parallel to the objective, to have minimal lens distortion. It is possible to give the main axis dimensions of the speicmens to calculate pixels to mm ratio.
 The CrackPy package is able do generate mask with classes "background", "matrix", "cracks" and "pores". On these classes the CrackPy package introduce couple of metrics, which are the intersection of practises in image processing regarding the evaluation of building materials in the current state of the art. The most basic metrics are:
@@ -27,7 +27,9 @@ Tese metrics can be observed all at once, or just some of the metrics can be pic
 
 The instalation of the package (private package)
 ============================
-$pip install git+https://crackpy_pip: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@github.com/Rievil/CrackPy
+```
+$ pip install git+https://crackpy_pip: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@github.com/Rievil/CrackPy
+```
 
 The usage of the package 
 =============================
