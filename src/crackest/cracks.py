@@ -122,6 +122,7 @@ class CrackPy:
         self.mm_ratio_set=False
         self.has_mask=False
         self.gamma_correction=1
+        self.black_level=1
         
         pass
     
@@ -166,7 +167,7 @@ class CrackPy:
         self.img
         return self.mask
         
-    def GetMask(self,impath=None,img=None,gamma=None):
+    def GetMask(self,impath=None,img=None,gamma=None,black_level=None):
         self.mm_ratio_set=False
         if impath is not None:
             self.impath=impath
@@ -183,8 +184,26 @@ class CrackPy:
             self.gamma_correction=gamma
             self.img=self.__adjust_gamma__()
             
-        self.IterateMask()
+        if (self.img_read==True) & (black_level is not None):
+            self.black_level=black_level
+            self.img=self.__black_level__()
             
+        self.IterateMask()
+    
+    def __black_level__(self):
+        
+        black_level=self.black_level
+        image = self.img.astype('float32')
+
+        # Apply black level correction
+        corrected_image = image - black_level
+
+        # Clip pixel values to ensure they stay within valid range [0, 255]
+        corrected_image = np.clip(corrected_image, 0, 255)
+
+        # Convert back to uint8
+        corrected_image = corrected_image.astype('uint8')
+        return corrected_image
         
     def __adjust_gamma__(self):
         gamma=self.gamma_correction
