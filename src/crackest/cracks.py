@@ -121,6 +121,7 @@ class CrackPy:
         self.pixel_mm_ratio=1
         self.mm_ratio_set=False
         self.has_mask=False
+        self.gamma_correction=1
         
         pass
     
@@ -165,28 +166,33 @@ class CrackPy:
         self.img
         return self.mask
         
-    def GetMask(self,impath=None,img=None):
+    def GetMask(self,impath=None,img=None,gamma=None):
         self.mm_ratio_set=False
         if impath is not None:
-            # print('reading1')
             self.impath=impath
-            self.__ReadImg__()
-            self.IterateMask()
+            self.__ReadImg__()            
         elif (impath is None) & (img is not None):
-            # print('reading2')
-            
-        
             self.img=cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
             self.imgo=self.img
             self.crop=False
             self.img_read=True
-            self.IterateMask()
         elif self.img_read==True: #Img already read?
-            # print('reading3')
-            self.IterateMask()
+            pass
+
+        if (self.img_read==True) & (gamma is not None):
+            self.gamma_correction=gamma
+            self.img=self.__adjust_gamma__()
+            
+        self.IterateMask()
             
         
-            
+    def __adjust_gamma__(self):
+        gamma=self.gamma_correction
+        invGamma = 1.0 / gamma
+        table = np.array([((i / 255.0) ** invGamma) * 255
+            for i in np.arange(0, 256)]).astype("uint8")
+        
+        return cv2.LUT(self.img, table)
     
     def __del__(self):
         torch.cuda.empty_cache()

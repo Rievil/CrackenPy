@@ -11,7 +11,7 @@ from setuptools import Extension, setup, find_packages
 
 setup(
     name='crackpy',
-    version='0.1.15',
+    version='0.1.16',
     packages=find_packages(where="src"),
     install_requires=[
     'torch>=2.0.0',
