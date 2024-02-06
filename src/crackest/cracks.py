@@ -477,8 +477,8 @@ class CrackPlot:
         self.fig=fig
         
     
-    def Save(self,fig,name):
-        fig.savefig('{:s}'.format(name),dpi=300,bbox_inches = 'tight',
+    def Save(self,name):
+        self.fig.savefig('{:s}'.format(name),dpi=300,bbox_inches = 'tight',
             pad_inches = 0)
         
     def distancemap(self):
