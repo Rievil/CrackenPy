@@ -17,5 +17,5 @@ cp.GetMask(imfile)
  
 #%
 pc=cr.CrackPlot(cp)
-pc.overlay()
-pc.save(r'Examples\Plots\TitleImg.png')
+pc.overlay(figsize=(16,4))
+pc.Save(r'Examples\Plots\Example.png')

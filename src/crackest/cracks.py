@@ -118,6 +118,7 @@ class CrackPy:
         self.patch_size=416
         self.crop=False
         self.img_read=False
+        self.hasimpath=False
         self.pixel_mm_ratio=1
         self.mm_ratio_set=False
         self.has_mask=False
@@ -128,6 +129,7 @@ class CrackPy:
     
     def GetImg(self,impath):
         self.impath=impath
+        self.hasimpath=True
         self.__ReadImg__()
     
     def __loadmodel__(self):
@@ -418,6 +420,7 @@ class CrackPy:
        
         self.mask=blank_image
         self.has_mask=True
+        self.__SeparateMask__()
         
     
     
