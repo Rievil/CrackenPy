@@ -181,21 +181,18 @@ class CrackPy:
             self.img_read=True
         elif self.img_read==True: #Img already read?
             pass
+        
+        self.gamma_correction=gamma
+        self.black_level=black_level
+        
 
-        if (self.img_read==True) & (gamma is not None):
-            self.gamma_correction=gamma
-            self.img=self.__adjust_gamma__()
-            
-        if (self.img_read==True) & (black_level is not None):
-            self.black_level=black_level
-            self.img=self.__black_level__()
             
         self.IterateMask()
     
-    def __black_level__(self):
+    def __black_level__(self,img):
         
         black_level=self.black_level
-        image = self.img.astype('float32')
+        image = img.astype('float32')
 
         # Apply black level correction
         corrected_image = image - black_level
@@ -207,13 +204,13 @@ class CrackPy:
         corrected_image = corrected_image.astype('uint8')
         return corrected_image
         
-    def __adjust_gamma__(self):
+    def __adjust_gamma__(self,img):
         gamma=self.gamma_correction
         invGamma = 1.0 / gamma
         table = np.array([((i / 255.0) ** invGamma) * 255
             for i in np.arange(0, 256)]).astype("uint8")
         
-        return cv2.LUT(self.img, table)
+        return cv2.LUT(img, table)
     
     def __del__(self):
         torch.cuda.empty_cache()
@@ -378,6 +375,13 @@ class CrackPy:
         else:
             imgo=self.img_crop
         
+        if self.gamma_correction is not None:
+            imgo=self.__adjust_gamma__(imgo)
+            # self.img=self.__adjust_gamma__()
+            
+        if self.black_level is not None:
+            imgo=self.__black_level__(imgo)
+            
         sz=imgo.shape
         step_size=self.patch_size
         
