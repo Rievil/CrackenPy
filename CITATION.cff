@@ -1,8 +1,8 @@
 @software{CracPy,
-  author = {Richard, Dvorak},
+  author = {Richard Dvorak, Matěj Prudil, Rostislav Krč},
   doi = {10.5281/zenodo.1234},
   month = {8},
-  title = {{Image segmentation of building material surfaces using deep learning}},
+  title = {{Image segmentation tool for semnatic segmentation of building material surfaces using deep learning}},
   url = {https://github.com/Rievil/CrackPy},
   version = {1.0.0},
   year = {2024}
