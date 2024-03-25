@@ -28,7 +28,7 @@ Tese metrics can be observed all at once, or just some of the metrics can be pic
 The instalation of the package (private package)
 ============================
 ```
-pip install git+https://crackpy_pip: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@github.com/Rievil/CrackPy
+pip install git+https://crackpy_pip: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@github.com/Rievil/CrackPy --upgrade
 ```
 
 The usage of the package 
