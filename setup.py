@@ -11,7 +11,7 @@ from setuptools import Extension, setup, find_packages
 
 setup(
     name='crackpy',
-    version='0.1.23',
+    version='0.1.24',
     packages=find_packages(where="src"),
     install_requires=[
     'torch>=2.0.0',
@@ -24,7 +24,8 @@ setup(
     'scikit-image>=0.21.0',
     'scikit-learn>=0.19.1',
     'wand>=0.6.13',
-    'segmentation_models_pytorch>=0.3.3'],
+    'segmentation_models_pytorch>=0.3.3',
+    'opencv-python>=4.8.0.76'],
     package_dir={"":"src"},
     package_data={"": ["*.pt"],"crackpy_models":['resnext101_32x8d_N387_C5_30102023','resnext101_32x8d_N387_C5_310124']}
 )
