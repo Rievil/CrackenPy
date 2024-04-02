@@ -25,8 +25,6 @@ import time
 import os
 from tqdm.notebook import tqdm
 
-# !pip install -q segmentation-models-pytorch
-# !pip install -q torchsummary
 
 
 import segmentation_models_pytorch as smp
