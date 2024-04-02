@@ -3,3 +3,5 @@ IESignals.pkl
 *.onnx
 *.pt
 src/CrackPy.egg-info/PKG-INFO
+.spyproject/
+__pycache__/
