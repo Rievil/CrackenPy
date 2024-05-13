@@ -26,7 +26,6 @@ import os
 from tqdm.notebook import tqdm
 
 
-
 import segmentation_models_pytorch as smp
 from wand.image import Image as WI
 from skimage.morphology import medial_axis, skeletonize
@@ -70,9 +69,7 @@ def DownloadModel(key):
 
         url_id = online_models[key][1]
         print(
-            "Downloading deep learing model '{:s}' for module crackpy".format(
-                online_models[key][0].replace(".pt", "")
-            )
+            "Downloading deep learing model '{:s}' for module crackpy".format(online_models[key][0].replace(".pt", ""))
         )
         gdown.download(id=url_id, output=out_file, quiet=False)
 
@@ -155,9 +152,7 @@ class CrackPy:
         if self.is_cuda == True:
             self.model.load_state_dict(torch.load(self.model_path))
         else:
-            self.model.load_state_dict(
-                torch.load(self.model_path, map_location="cpu")
-            )
+            self.model.load_state_dict(torch.load(self.model_path, map_location="cpu"))
         self.model.eval()
 
     def __ReadImg__(self):
@@ -224,9 +219,7 @@ class CrackPy:
     def __adjust_gamma__(self, img):
         gamma = self.gamma_correction
         invGamma = 1.0 / gamma
-        table = np.array(
-            [((i / 255.0) ** invGamma) * 255 for i in np.arange(0, 256)]
-        ).astype("uint8")
+        table = np.array([((i / 255.0) ** invGamma) * 255 for i in np.arange(0, 256)]).astype("uint8")
 
         return cv2.LUT(img, table)
 
@@ -274,9 +267,7 @@ class CrackPy:
 
     def __predict_image__(self, image):
         self.model.eval()
-        t = T.Compose(
-            [T.ToTensor(), T.Normalize(self.pred_mean, self.pred_std)]
-        )
+        t = T.Compose([T.ToTensor(), T.Normalize(self.pred_mean, self.pred_std)])
         image = t(image)
         self.model.to(self.device)
         image = image.to(self.device)
@@ -359,9 +350,7 @@ class CrackPy:
         image_pore = self.masks["pore"]
         label_img_pore = label(image_pore)
 
-        props_pore = regionprops_table(
-            label_img_pore, properties=self.reg_props
-        )
+        props_pore = regionprops_table(label_img_pore, properties=self.reg_props)
         dfpores = pd.DataFrame(props_pore)
 
         mask = dfpores["area"] < 10
@@ -497,9 +486,7 @@ class CrackPlot:
         self.fig = fig
 
     def Save(self, name):
-        self.fig.savefig(
-            "{:s}".format(name), dpi=300, bbox_inches="tight", pad_inches=0
-        )
+        self.fig.savefig("{:s}".format(name), dpi=300, bbox_inches="tight", pad_inches=0)
 
     def distancemap(self):
         mask = self.CP.mask
@@ -518,9 +505,7 @@ class CrackPlot:
         ax.imshow(self.CP.img)
 
         if self.CP.mm_ratio_set == True:
-            im = ax.imshow(
-                dist * self.CP.pixel_mm_ratio, cmap="jet", alpha=0.8
-            )
+            im = ax.imshow(dist * self.CP.pixel_mm_ratio, cmap="jet", alpha=0.8)
         else:
             im = ax.imshow(dist, cmap="jet", alpha=0.8)
 
@@ -541,9 +526,7 @@ class CrackPlot:
             cbar.ax.set_label("Thickness [mm]")
         else:
             arr_dist = dist[skel == 1] * 2
-            plt.suptitle(
-                "Mean thickness {:.2f} pixels".format(arr_dist.mean())
-            )
+            plt.suptitle("Mean thickness {:.2f} pixels".format(arr_dist.mean()))
             cbar.ax.set_ylabel("Thickness [px]")
 
         plt.show()

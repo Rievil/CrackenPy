@@ -326,7 +326,7 @@ torch.cuda.empty_cache()
 
 max_lr = 1e-3
 epoch = 15
-weight_decay = 1e-4
+weight_decay = 1e-3
 
 criterion = nn.CrossEntropyLoss()
 optimizer = torch.optim.AdamW(model.parameters(), lr=max_lr, weight_decay=weight_decay)
