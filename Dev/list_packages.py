@@ -33,6 +33,8 @@ def print_packages_and_licenses():
 
 
 df_licenses=print_packages_and_licenses()
+#%%
+df_licenses.to_excel(r'Dev\licesnes.xlsx')
     
 #%%
 import os.path, pkgutil
