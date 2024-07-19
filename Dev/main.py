@@ -9,11 +9,11 @@ Created on Mon Nov 20 18:37:43 2023
 from crackest import cracks as cr
 
 
-cp=cr.CrackPy(model=1)
+cp=cr.CrackPy(model=0)
 
 
 #%%
-imfile=r'Examples\Img\ID14_940_Image.png'
+imfile=r'Examples/Img/ID14_940_Image.png'
 
 
 
@@ -37,10 +37,20 @@ pc.distancemap()
 
 cp.GetMask(imfile)
 #%%
-pc.Save(fig, r'Examples\Plots\Example.png')
+pc.Save(fig, r'Examples/Plots/Example.png')
 #%%
 
 cp.SetRatio(length=160,width=40)
+#%%
+import torch 
+
+if torch.backends.mps.is_available():
+   mps_device = torch.device("mps")
+elif torch.cuda.is_available():
+   mps_device = torch.device("cuda")
+else:
+   mps_device = torch.device("cpu")
+
 #%% Ulozeni spravne formatovaneho modelu pro matlab
 import torch.onnx
 X = torch.rand(1,3,416,416)
