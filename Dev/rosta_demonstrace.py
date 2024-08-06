@@ -29,12 +29,7 @@ import cv2
 
 cp = cracks.CrackPy(model=0)
 ca = CrackAn(cp)
-# %% Ratio px2mm
-"""
-Set mm length and width of rectangular specimen 
-"""
 
-ca.MakeRatio(length=160.28, width=40.72)
 # %% Registr
 """
 Give CrackAn the input file, where a specimens with given lentgh should 
