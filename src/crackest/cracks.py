@@ -100,6 +100,7 @@ class CrackPy:
         self.impath = ""
 
         self.is_cuda = torch.cuda.is_available()
+        self.plot_app = CrackPlot(self)
         if torch.backends.mps.is_available():
             self.device_type = "mps"
         elif torch.cuda.is_available():
@@ -153,6 +154,10 @@ class CrackPy:
         self.black_level = 1
 
         pass
+
+    def preview(self):
+        if self.has_mask == True:
+            self.plot_app.overlay()
 
     def GetImg(self, impath):
         self.impath = impath
