@@ -155,9 +155,16 @@ class CrackPy:
 
         pass
 
-    def preview(self):
+    def preview(self, mask=None):
         if self.has_mask == True:
+            if mask is not None:
+                self.plot_app.show_mask(mask)
+                return self.plot_app.fig
+
             self.plot_app.overlay()
+            return self.plot_app.fig
+        else:
+            print("First extract mask")
 
     def GetImg(self, impath):
         self.impath = impath
@@ -274,7 +281,9 @@ class CrackPy:
             self.width = width
 
         mask = np.array(self.mask)
-        bw_mask = mask[:, :] == 1
+        bw_mask = mask[:, :] == 0
+        bw_mask = ~bw_mask
+
         image = bw_mask.astype(np.uint8)
         label_img = label(image)
 
@@ -282,12 +291,13 @@ class CrackPy:
 
         self.orientation = props_mat["orientation"]
 
-        dfmat = pd.DataFrame(props_mat)
-        dfmat.sort_values(by=["area"], ascending=False)
-        dfmat = dfmat.reset_index()
+        self.dfmat = pd.DataFrame(props_mat)
+        self.dfmat.sort_values(by=["area"], ascending=False, inplace=True)
+        self.dfmat = self.dfmat.reset_index(drop=True)
 
-        l_rat = self.length / dfmat["axis_major_length"][0]
-        w_rat = self.width / dfmat["axis_minor_length"][0]
+        l_rat = self.length / self.dfmat["axis_major_length"][0]
+        w_rat = self.width / self.dfmat["axis_minor_length"][0]
+
         m_rat = (l_rat + w_rat) / 2
         self.pixel_mm_ratio = m_rat
         return self.pixel_mm_ratio
@@ -335,6 +345,10 @@ class CrackPy:
             "crack": crack_bw,
             "pore": pore_bw,
         }
+
+    def list_labels(self):
+        labels = ["back", "spec", "mat", "crack", "pore"]
+        return labels
 
     def MeasureBW(self):
         self.__SeparateMask__()
@@ -488,6 +502,26 @@ class CrackPlot:
 
         ax.get_xaxis().set_ticks([])
         ax.get_yaxis().set_ticks([])
+        self.fig = fig
+
+    def show_mask(self, mask="crack"):
+        fig, ax = plt.subplots(1, 1)
+
+        masks = self.CP.SepMasks()
+        print(masks)
+
+        if self.CP.crop == False:
+            ax.imshow(self.CP.img)
+        else:
+            ax.imshow(self.CP.img_crop)
+
+        ax.imshow(masks[mask], alpha=0.8)
+
+        ax.set_title("Showing mask: {:s}".format(mask))
+
+        ax.get_xaxis().set_ticks([])
+        ax.get_yaxis().set_ticks([])
+        plt.tight_layout()
         self.fig = fig
 
     def overlay(self, figsize=[5, 4]):

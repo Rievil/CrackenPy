@@ -11,12 +11,12 @@ from setuptools import Extension, setup, find_packages
 
 setup(
     name="crackpy",
-    version="0.1.29",
+    version="0.1.37",
     packages=find_packages(where="src"),
     install_requires=[
         "torch>=2.0.0",
         "pandas>=0.23.3",
-        "numpy>=1.14.5",
+        "numpy>=2.0.0",
         "matplotlib>=2.2.0",
         "gdown>=5.0.0",
         "sknw>=0.15",

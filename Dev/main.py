@@ -17,6 +17,9 @@ imfile = r"Examples/Img/ID14_940_Image.png"
 cp.GetMask(imfile)
 # %%
 
+cp.preview()
+# %%
+
 pc = cr.CrackPlot(cp)
 fig = pc.overlay(figsize=(17, 6))
 
@@ -27,12 +30,7 @@ pc.Save(fig, "Example")
 
 pc.distancemap()
 
-# %%
-a = False
-if a:
-    print("tohle")
-else:
-    print("aha")
+
 # %%
 
 

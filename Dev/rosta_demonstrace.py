@@ -64,8 +64,8 @@ def get_countours(cp, plot=True):
     df = df[df["area_mat_ratio"] > 0.7]
 
     bbox = df.iloc[-1]["bbox"]  # what if there are multiple rows?
-    imgr = cp.img[bbox[1]: bbox[3] + bbox[1], bbox[0]: bbox[2] + bbox[0], :]
-    maskr = cp.mask[bbox[1]: bbox[3] + bbox[1], bbox[0]: bbox[2] + bbox[0]]
+    imgr = cp.img[bbox[1] : bbox[3] + bbox[1], bbox[0] : bbox[2] + bbox[0], :]
+    maskr = cp.mask[bbox[1] : bbox[3] + bbox[1], bbox[0] : bbox[2] + bbox[0]]
     if plot:
         show_contours_plot(df, r)  # Display the image and plot all contours found
     return imgr, maskr
@@ -141,12 +141,14 @@ def get_dfii(props_mat):
                     dfii,
                     pd.DataFrame(
                         {
-                            "bbox": [[  # minr, minc, maxr, maxc
-                                int(props["bbox-0"]),
-                                int(props["bbox-1"]),
-                                int(props["bbox-2"]),
-                                int(props["bbox-3"]),
-                            ]],
+                            "bbox": [
+                                [  # minr, minc, maxr, maxc
+                                    int(props["bbox-0"]),
+                                    int(props["bbox-1"]),
+                                    int(props["bbox-2"]),
+                                    int(props["bbox-3"]),
+                                ]
+                            ],
                             "area": props["area"],
                             "x0": x0,
                             "x1": x1,
@@ -173,8 +175,18 @@ def show_crack_plot(dfii, imgr, mask, img_r, mask_r, image):
     ax.imshow(image, cmap=plt.cm.gray)
 
     for index, row in dfii.iterrows():
-        ax.plot((row["x0i"], row["x1"]), (row["y0i"], row["y1"]), "-r", linewidth=2.5)
-        ax.plot((row["x2i"], row["x2"]), (row["y2i"], row["y2"]), "-r", linewidth=2.5)
+        ax.plot(
+            (row["x0i"], row["x1"]),
+            (row["y0i"], row["y1"]),
+            "-r",
+            linewidth=2.5,
+        )
+        ax.plot(
+            (row["x2i"], row["x2"]),
+            (row["y2i"], row["y2"]),
+            "-r",
+            linewidth=2.5,
+        )
         ax.plot(row["x0"], row["y0"], ".g", markersize=15)
         minr = row["bbox"][0]
         minc = row["bbox"][1]
@@ -411,9 +423,7 @@ def plot_other_data(ax, m_nodes):
         typ_crack = "No nodes"
 
     # Intersection of both lines
-    xin = (eq["h"]["beta"] - eq["v"]["beta"]) / (
-            eq["v"]["alpha"] - eq["h"]["alpha"]
-    )
+    xin = (eq["h"]["beta"] - eq["v"]["beta"]) / (eq["v"]["alpha"] - eq["h"]["alpha"])
     yin = xin * eq["h"]["alpha"] + eq["h"]["beta"]
 
     ax.scatter(xin, yin, color="tab:red", s=400)
@@ -474,11 +484,11 @@ def plot_cracks(show_all=False, eq=None, savefig=False):
 if __name__ == "__main__":
     cp = cracks.CrackPy(model=0)
     ca = CrackAn(cp)
-    ca.Input(file=r"../Examples/Img/ID14_940_Image.png")
+    ca.Input(file=r"Examples/Img/ID14_940_Image.png")
     ca.Registr()
 
-    imgr, maskr = get_countours(cp, plot=False)
-    mask_r, img_r = get_crack_mask(imgr, maskr, plot=False)
+    imgr, maskr = get_countours(cp, plot=True)
+    mask_r, img_r = get_crack_mask(imgr, maskr, plot=True)
     # plot_specimen(img_r)
     graph, eq = build_graph(mask_r)
     # plot_cracks(True, eq)
@@ -496,9 +506,11 @@ if __name__ == "__main__":
 
     print(f"Average number of edges per node: {df_nodes['num_edges'].mean():.3f}")
     print(f"Total length of cracks: {df_edges['length'].sum():.3f}")
-    mean_angle_weighted = (df_edges["angle"] * df_edges["length"]).sum() / df_edges["length"].sum()
+    mean_angle_weighted = (df_edges["angle"] * df_edges["length"]).sum() / df_edges[
+        "length"
+    ].sum()
     print(f"Average direction of cracks: {mean_angle_weighted:.3f}°")
     # histogram of crack angles, ...
 
-    # cran.plot_cracks(img_r)
+    cran.plot_cracks(img_r)
     cran.plot_cracks(img_r, selected_edge_ids=["2_1374", "1243_1374", "1374_1512"])
