@@ -13,12 +13,12 @@ cp = CrackPy(model=1)  # Model optimized also for pores
 # %
 
 imfile = r"Examples/Img/ID14_940_Image.png"  # Read a file
-cp.GetMask(imfile)
+cp.get_mask(imfile)
 # %%
-cp.preview(mask="spec")
+cp.preview(mask="crack")
 
 # %%
-cp.SetRatio(160, 40)
+cp.set_ratio(160, 40)
 # %%
 pc = CrackPlot(cp)
 pc.overlay(figsize=(16, 4))

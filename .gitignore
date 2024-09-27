@@ -5,3 +5,4 @@ IESignals.pkl
 src/CrackPy.egg-info/PKG-INFO
 .spyproject/
 __pycache__/
+*.venv/

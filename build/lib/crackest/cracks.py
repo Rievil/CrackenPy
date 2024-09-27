@@ -166,16 +166,14 @@ class CrackPy:
         else:
             print("First extract mask")
 
-    def GetImg(self, impath):
+    def get_img(self, impath):
         self.impath = impath
         self.hasimpath = True
-        self.__ReadImg__()
+        self.__read_img__()
 
     def __loadmodel__(self):
         if self.is_cuda == True:
-            self.model.load_state_dict(
-                torch.load(self.model_path, weights_only=True)
-            )
+            self.model.load_state_dict(torch.load(self.model_path, weights_only=True))
         else:
             self.model.load_state_dict(
                 torch.load(
@@ -186,7 +184,7 @@ class CrackPy:
             )
         self.model.eval()
 
-    def __ReadImg__(self):
+    def __read_img__(self):
         # if ".heic" in self.impath.lower():
         #     img = WI(filename=self.impath)
         #     img.format = "jpg"
@@ -205,7 +203,7 @@ class CrackPy:
         self.mask = []
         # return img
 
-    def ClassifyImg(self, impath):
+    def classify_img(self, impath):
         self.impath = impath
         img = cv2.imread(self.impath)
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
@@ -216,7 +214,7 @@ class CrackPy:
         self.img
         return self.mask
 
-    def GetMask(self, impath=None, img=None, gamma=None, black_level=None):
+    def get_mask(self, impath=None, img=None, gamma=None, black_level=None):
         self.mm_ratio_set = False
         if impath is not None:
             self.impath = impath
@@ -232,7 +230,7 @@ class CrackPy:
         self.gamma_correction = gamma
         self.black_level = black_level
 
-        self.IterateMask()
+        self.iterate_mask()
 
     def __black_level__(self, img):
         black_level = self.black_level
@@ -260,7 +258,7 @@ class CrackPy:
     def __del__(self):
         torch.cuda.empty_cache()
 
-    def SetRatio(self, length=None, width=None):
+    def set_ratio(self, length=None, width=None):
         self.mm_ratio_set = True
         reg_props = (
             "area",
@@ -304,9 +302,7 @@ class CrackPy:
 
     def __predict_image__(self, image):
         self.model.eval()
-        t = T.Compose(
-            [T.ToTensor(), T.Normalize(self.pred_mean, self.pred_std)]
-        )
+        t = T.Compose([T.ToTensor(), T.Normalize(self.pred_mean, self.pred_std)])
         image = t(image)
         self.model.to(self.device)
         image = image.to(self.device)
@@ -318,11 +314,11 @@ class CrackPy:
             masked = masked.cpu().squeeze(0)
         return masked
 
-    def SepMasks(self):
-        self.__SeparateMask__()
+    def sep_masks(self):
+        self.__separate_mask__()
         return self.masks
 
-    def __SeparateMask__(self):
+    def __separate_mask__(self):
         back_bw = self.mask[:, :] == 0
         spec_bw = ~back_bw
 
@@ -350,7 +346,7 @@ class CrackPy:
         labels = ["back", "spec", "mat", "crack", "pore"]
         return labels
 
-    def MeasureBW(self):
+    def get_metrics(self):
         self.__SeparateMask__()
 
         kernel = np.ones((50, 50), np.uint8)
@@ -386,16 +382,14 @@ class CrackPy:
         }
 
         self.bw_stats = result
-        self.__MeasurePores__()
+        self.__meas_pores__()
         return result
 
-    def __MeasurePores__(self):
+    def __meas_pores__(self):
         image_pore = self.masks["pore"]
         label_img_pore = label(image_pore)
 
-        props_pore = regionprops_table(
-            label_img_pore, properties=self.reg_props
-        )
+        props_pore = regionprops_table(label_img_pore, properties=self.reg_props)
         dfpores = pd.DataFrame(props_pore)
 
         mask = dfpores["area"] < 10
@@ -413,11 +407,11 @@ class CrackPy:
         self.bw_stats["avg_pore_distance"] = avgdist
         self.bw_stats["avg_pore_size"] = area
 
-    def SetCropDim(self, dim):
+    def set_cropdim(self, dim):
         self.crop_rec = dim
         self.crop = True
 
-    def CropImg(self):
+    def crop_img(self):
         if self.crop == True:
             dim = self.crop_rec
             imgo = self.img[dim[0] : dim[1], dim[2] : dim[3]]
@@ -425,7 +419,7 @@ class CrackPy:
             if self.has_mask == True:
                 self.mask = self.mask[dim[0] : dim[1], dim[2] : dim[3]]
 
-    def IterateMask(self):
+    def iterate_mask(self):
         if self.crop == False:
             imgo = self.img
         else:
@@ -572,9 +566,7 @@ class CrackPlot:
         ax.imshow(self.CP.img)
 
         if self.CP.mm_ratio_set == True:
-            im = ax.imshow(
-                dist * self.CP.pixel_mm_ratio, cmap="jet", alpha=0.8
-            )
+            im = ax.imshow(dist * self.CP.pixel_mm_ratio, cmap="jet", alpha=0.8)
         else:
             im = ax.imshow(dist, cmap="jet", alpha=0.8)
 
@@ -595,9 +587,7 @@ class CrackPlot:
             cbar.ax.set_label("Thickness [mm]")
         else:
             arr_dist = dist[skel == 1] * 2
-            plt.suptitle(
-                "Mean thickness {:.2f} pixels".format(arr_dist.mean())
-            )
+            plt.suptitle("Mean thickness {:.2f} pixels".format(arr_dist.mean()))
             cbar.ax.set_ylabel("Thickness [px]")
 
         plt.show()
