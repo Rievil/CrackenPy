@@ -2,7 +2,7 @@
 IESignals.pkl
 *.onnx
 *.pt
-* build
+*build
 src/CrackPy.egg-info/PKG-INFO
 .spyproject/
 __pycache__/

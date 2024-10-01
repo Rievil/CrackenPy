@@ -20,12 +20,7 @@ cp.preview(mask="crack")
 
 model_path = cp.model_path
 print(model_path)
-# %%
-cp.set_ratio(160, 40)
-# %%
-pc = CrackPlot(cp)
-pc.overlay(figsize=(16, 4))
-pc.Save(r"Examples\Plots\Example.png")
+
 # %%
 import torch
 import torch.nn as nn
