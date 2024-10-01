@@ -141,6 +141,7 @@ class CrackPy:
             "axis_major_length",
             "axis_minor_length",
         )
+
         self.pred_mean = [0.485, 0.456, 0.406]
         self.pred_std = [0.229, 0.224, 0.225]
         self.patch_size = 416
@@ -152,17 +153,15 @@ class CrackPy:
         self.has_mask = False
         self.gamma_correction = 1
         self.black_level = 1
-
         pass
 
     def preview(self, mask=None):
         if self.has_mask == True:
             if mask is not None:
                 self.plot_app.show_mask(mask)
-                return self.plot_app.fig
+                return
 
             self.plot_app.overlay()
-            return self.plot_app.fig
         else:
             print("First extract mask")
 
@@ -170,248 +169,6 @@ class CrackPy:
         self.impath = impath
         self.hasimpath = True
         self.__read_img__()
-
-    def __loadmodel__(self):
-        if self.is_cuda == True:
-            self.model.load_state_dict(
-                torch.load(self.model_path, weights_only=True)
-            )
-        else:
-            self.model.load_state_dict(
-                torch.load(
-                    self.model_path,
-                    map_location=self.device_type,
-                    weights_only=True,
-                )
-            )
-        self.model.eval()
-
-    def __read_img__(self):
-        # if ".heic" in self.impath.lower():
-        #     img = WI(filename=self.impath)
-        #     img.format = "jpg"
-        #     img_buffer = np.asarray(bytearray(img.make_blob()), dtype=np.uint8)
-        #     img = cv2.imdecode(img_buffer, cv2.IMREAD_UNCHANGED)
-        # else:
-
-        img = cv2.imread(self.impath)
-        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-        self.img = img
-
-        self.crop = False
-        self.img_read = True
-        self.has_mask = False
-
-        self.mask = []
-        # return img
-
-    def classify_img(self, impath):
-        self.impath = impath
-        img = cv2.imread(self.impath)
-        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-        img = cv2.resize(img, (416, 416), interpolation=cv2.INTER_NEAREST)
-        img = PImage.fromarray(img)
-        self.img = img
-        self.mask = self.__predict_image__(self.img)
-        self.img
-        return self.mask
-
-    def get_mask(self, impath=None, img=None, gamma=None, black_level=None):
-        self.mm_ratio_set = False
-        if impath is not None:
-            self.impath = impath
-            self.__read_img__()
-        elif (impath is None) & (img is not None):
-            self.img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-            self.imgo = self.img
-            self.crop = False
-            self.img_read = True
-        elif self.img_read == True:  # Img already read?
-            pass
-
-        self.gamma_correction = gamma
-        self.black_level = black_level
-
-        self.iterate_mask()
-
-    def __black_level__(self, img):
-        black_level = self.black_level
-        image = img.astype("float32")
-
-        # Apply black level correction
-        corrected_image = image - black_level
-
-        # Clip pixel values to ensure they stay within valid range [0, 255]
-        corrected_image = np.clip(corrected_image, 0, 255)
-
-        # Convert back to uint8
-        corrected_image = corrected_image.astype("uint8")
-        return corrected_image
-
-    def __adjust_gamma__(self, img):
-        gamma = self.gamma_correction
-        invGamma = 1.0 / gamma
-        table = np.array(
-            [((i / 255.0) ** invGamma) * 255 for i in np.arange(0, 256)]
-        ).astype("uint8")
-
-        return cv2.LUT(img, table)
-
-    def __del__(self):
-        torch.cuda.empty_cache()
-
-    def set_ratio(self, length=None, width=None):
-        self.mm_ratio_set = True
-        reg_props = (
-            "area",
-            "centroid",
-            "orientation",
-            "axis_major_length",
-            "axis_minor_length",
-        )
-
-        if length is None:
-            self.length = 160
-        else:
-            self.length = length
-
-        if width is None:
-            self.width = 40
-        else:
-            self.width = width
-
-        mask = np.array(self.mask)
-        bw_mask = mask[:, :] == 0
-        bw_mask = ~bw_mask
-
-        image = bw_mask.astype(np.uint8)
-        label_img = label(image)
-
-        props_mat = regionprops_table(label_img, properties=reg_props)
-
-        self.orientation = props_mat["orientation"]
-
-        self.dfmat = pd.DataFrame(props_mat)
-        self.dfmat.sort_values(by=["area"], ascending=False, inplace=True)
-        self.dfmat = self.dfmat.reset_index(drop=True)
-
-        l_rat = self.length / self.dfmat["axis_major_length"][0]
-        w_rat = self.width / self.dfmat["axis_minor_length"][0]
-
-        m_rat = (l_rat + w_rat) / 2
-        self.pixel_mm_ratio = m_rat
-        return self.pixel_mm_ratio
-
-    def __predict_image__(self, image):
-        self.model.eval()
-        t = T.Compose(
-            [T.ToTensor(), T.Normalize(self.pred_mean, self.pred_std)]
-        )
-        image = t(image)
-        self.model.to(self.device)
-        image = image.to(self.device)
-        with torch.no_grad():
-            image = image.unsqueeze(0)
-            output = self.model(image)
-
-            masked = torch.argmax(output, dim=1)
-            masked = masked.cpu().squeeze(0)
-        return masked
-
-    def sep_masks(self):
-        self.__separate_mask__()
-        return self.masks
-
-    def __separate_mask__(self):
-        back_bw = self.mask[:, :] == 0
-        spec_bw = ~back_bw
-
-        spec_bw = spec_bw.astype(np.uint8)
-        back_bw = back_bw.astype(np.uint8)
-
-        mat_bwo = self.mask[:, :] == 1
-        mat_bwo = mat_bwo.astype(np.uint8)
-
-        crack_bw = self.mask[:, :] == 2
-        crack_bw = crack_bw.astype(np.uint8)
-
-        pore_bw = self.mask[:, :] == 3
-        pore_bw = pore_bw.astype(np.uint8)
-
-        self.masks = {
-            "back": back_bw,
-            "spec": spec_bw,
-            "mat": mat_bwo,
-            "crack": crack_bw,
-            "pore": pore_bw,
-        }
-
-    def list_labels(self):
-        labels = ["back", "spec", "mat", "crack", "pore"]
-        return labels
-
-    def get_metrics(self):
-        self.__SeparateMask__()
-
-        kernel = np.ones((50, 50), np.uint8)
-        mat_bw = cv2.dilate(self.masks["mat"], kernel, iterations=1)
-        mat_bw = cv2.erode(mat_bw, kernel)
-
-        crack_bw = cv2.bitwise_and(mat_bw, self.masks["crack"])
-        pore_bw = cv2.bitwise_and(mat_bw, self.masks["pore"])
-
-        total_area = self.masks["back"].shape[0] * self.masks["back"].shape[1]
-        back_area = self.masks["back"].sum()
-        spec_area = total_area - back_area
-        crack_area = crack_bw.sum()
-        pore_area = pore_bw.sum()
-
-        mat_area = total_area - (crack_area + spec_area + pore_area)
-
-        crack_ratio = crack_area / spec_area
-
-        skel = skeletonize(crack_bw, method="lee")
-
-        crack_length = skel.sum()
-        crack_avg_thi = crack_area / crack_length
-
-        result = {
-            "spec_area": spec_area * self.pixel_mm_ratio,
-            "mat_area": mat_area * self.pixel_mm_ratio,
-            "crack_area": crack_area * self.pixel_mm_ratio,
-            "crack_ratio": crack_ratio,
-            "crack_length": crack_length * self.pixel_mm_ratio,
-            "crack_thickness": crack_avg_thi * self.pixel_mm_ratio,
-            "pore_area": pore_area * self.pixel_mm_ratio,
-        }
-
-        self.bw_stats = result
-        self.__meas_pores__()
-        return result
-
-    def __meas_pores__(self):
-        image_pore = self.masks["pore"]
-        label_img_pore = label(image_pore)
-
-        props_pore = regionprops_table(
-            label_img_pore, properties=self.reg_props
-        )
-        dfpores = pd.DataFrame(props_pore)
-
-        mask = dfpores["area"] < 10
-        dfpores = dfpores[~mask]
-
-        dfpores.sort_values(by=["area"], ascending=False)
-        dfpores = dfpores.reset_index()
-
-        points = np.array([dfpores["centroid-1"], dfpores["centroid-0"]])
-        points = np.rot90(points)
-        arr = pdist(points, metric="minkowski")
-
-        avgdist = arr.mean()
-        area = dfpores["area"].mean()
-        self.bw_stats["avg_pore_distance"] = avgdist
-        self.bw_stats["avg_pore_size"] = area
 
     def set_cropdim(self, dim):
         self.crop_rec = dim
@@ -474,6 +231,240 @@ class CrackPy:
         self.mask = blank_image
         self.has_mask = True
         self.__separate_mask__()
+
+    def classify_img(self, impath):
+        self.impath = impath
+        img = cv2.imread(self.impath)
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        img = cv2.resize(img, (416, 416), interpolation=cv2.INTER_NEAREST)
+        img = PImage.fromarray(img)
+        self.img = img
+        self.mask = self.__predict_image__(self.img)
+        self.img
+        return self.mask
+
+    def get_mask(self, impath=None, img=None, gamma=None, black_level=None):
+        self.mm_ratio_set = False
+        if impath is not None:
+            self.impath = impath
+            self.__read_img__()
+        elif (impath is None) & (img is not None):
+            self.img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+            self.imgo = self.img
+            self.crop = False
+            self.img_read = True
+        elif self.img_read == True:  # Img already read?
+            pass
+
+        self.gamma_correction = gamma
+        self.black_level = black_level
+
+        self.iterate_mask()
+
+    def set_ratio(self, length=None, width=None):
+        self.mm_ratio_set = True
+        reg_props = (
+            "area",
+            "centroid",
+            "orientation",
+            "axis_major_length",
+            "axis_minor_length",
+        )
+
+        if length is None:
+            self.length = 160
+        else:
+            self.length = length
+
+        if width is None:
+            self.width = 40
+        else:
+            self.width = width
+
+        mask = np.array(self.mask)
+        bw_mask = mask[:, :] == 0
+        bw_mask = ~bw_mask
+
+        image = bw_mask.astype(np.uint8)
+        label_img = label(image)
+
+        props_mat = regionprops_table(label_img, properties=reg_props)
+
+        self.orientation = props_mat["orientation"]
+
+        self.dfmat = pd.DataFrame(props_mat)
+        self.dfmat.sort_values(by=["area"], ascending=False, inplace=True)
+        self.dfmat = self.dfmat.reset_index(drop=True)
+
+        l_rat = self.length / self.dfmat["axis_major_length"][0]
+        w_rat = self.width / self.dfmat["axis_minor_length"][0]
+
+        m_rat = (l_rat + w_rat) / 2
+        self.pixel_mm_ratio = m_rat
+        return self.pixel_mm_ratio
+
+    def sep_masks(self):
+        self.__separate_mask__()
+        return self.masks
+
+    def list_labels(self):
+        labels = ["back", "spec", "mat", "crack", "pore"]
+        return labels
+
+    def get_metrics(self):
+        self.__SeparateMask__()
+
+        kernel = np.ones((50, 50), np.uint8)
+        mat_bw = cv2.dilate(self.masks["mat"], kernel, iterations=1)
+        mat_bw = cv2.erode(mat_bw, kernel)
+
+        crack_bw = cv2.bitwise_and(mat_bw, self.masks["crack"])
+        pore_bw = cv2.bitwise_and(mat_bw, self.masks["pore"])
+
+        total_area = self.masks["back"].shape[0] * self.masks["back"].shape[1]
+        back_area = self.masks["back"].sum()
+        spec_area = total_area - back_area
+        crack_area = crack_bw.sum()
+        pore_area = pore_bw.sum()
+
+        mat_area = total_area - (crack_area + spec_area + pore_area)
+
+        crack_ratio = crack_area / spec_area
+
+        skel = skeletonize(crack_bw, method="lee")
+
+        crack_length = skel.sum()
+        crack_avg_thi = crack_area / crack_length
+
+        result = {
+            "spec_area": spec_area * self.pixel_mm_ratio,
+            "mat_area": mat_area * self.pixel_mm_ratio,
+            "crack_area": crack_area * self.pixel_mm_ratio,
+            "crack_ratio": crack_ratio,
+            "crack_length": crack_length * self.pixel_mm_ratio,
+            "crack_thickness": crack_avg_thi * self.pixel_mm_ratio,
+            "pore_area": pore_area * self.pixel_mm_ratio,
+        }
+
+        self.bw_stats = result
+        self.__meas_pores__()
+        return result
+
+    def __loadmodel__(self):
+        if self.is_cuda == True:
+            self.model.load_state_dict(
+                torch.load(self.model_path, weights_only=True)
+            )
+        else:
+            self.model.load_state_dict(
+                torch.load(
+                    self.model_path,
+                    map_location=self.device_type,
+                    weights_only=True,
+                )
+            )
+        self.model.eval()
+
+    def __read_img__(self):
+        img = cv2.imread(self.impath)
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        self.img = img
+
+        self.crop = False
+        self.img_read = True
+        self.has_mask = False
+
+        self.mask = []
+
+    def __black_level__(self, img):
+        black_level = self.black_level
+        image = img.astype("float32")
+
+        # Apply black level correction
+        corrected_image = image - black_level
+
+        # Clip pixel values to ensure they stay within valid range [0, 255]
+        corrected_image = np.clip(corrected_image, 0, 255)
+
+        # Convert back to uint8
+        corrected_image = corrected_image.astype("uint8")
+        return corrected_image
+
+    def __adjust_gamma__(self, img):
+        gamma = self.gamma_correction
+        invGamma = 1.0 / gamma
+        table = np.array(
+            [((i / 255.0) ** invGamma) * 255 for i in np.arange(0, 256)]
+        ).astype("uint8")
+
+        return cv2.LUT(img, table)
+
+    def __del__(self):
+        torch.cuda.empty_cache()
+
+    def __predict_image__(self, image):
+        self.model.eval()
+        t = T.Compose(
+            [T.ToTensor(), T.Normalize(self.pred_mean, self.pred_std)]
+        )
+        image = t(image)
+        self.model.to(self.device)
+        image = image.to(self.device)
+        with torch.no_grad():
+            image = image.unsqueeze(0)
+            output = self.model(image)
+
+            masked = torch.argmax(output, dim=1)
+            masked = masked.cpu().squeeze(0)
+        return masked
+
+    def __separate_mask__(self):
+        back_bw = self.mask[:, :] == 0
+        spec_bw = ~back_bw
+
+        spec_bw = spec_bw.astype(np.uint8)
+        back_bw = back_bw.astype(np.uint8)
+
+        mat_bwo = self.mask[:, :] == 1
+        mat_bwo = mat_bwo.astype(np.uint8)
+
+        crack_bw = self.mask[:, :] == 2
+        crack_bw = crack_bw.astype(np.uint8)
+
+        pore_bw = self.mask[:, :] == 3
+        pore_bw = pore_bw.astype(np.uint8)
+
+        self.masks = {
+            "back": back_bw,
+            "spec": spec_bw,
+            "mat": mat_bwo,
+            "crack": crack_bw,
+            "pore": pore_bw,
+        }
+
+    def __meas_pores__(self):
+        image_pore = self.masks["pore"]
+        label_img_pore = label(image_pore)
+
+        props_pore = regionprops_table(
+            label_img_pore, properties=self.reg_props
+        )
+        dfpores = pd.DataFrame(props_pore)
+
+        mask = dfpores["area"] < 10
+        dfpores = dfpores[~mask]
+
+        dfpores.sort_values(by=["area"], ascending=False)
+        dfpores = dfpores.reset_index()
+
+        points = np.array([dfpores["centroid-1"], dfpores["centroid-0"]])
+        points = np.rot90(points)
+        arr = pdist(points, metric="minkowski")
+
+        avgdist = arr.mean()
+        area = dfpores["area"].mean()
+        self.bw_stats["avg_pore_distance"] = avgdist
+        self.bw_stats["avg_pore_size"] = area
 
 
 import matplotlib.pyplot as plt
