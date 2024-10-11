@@ -233,7 +233,7 @@ class CrackPy:
 
         self.mask = blank_image
         self.has_mask = True
-        self.__separate_mask__(self.mask)
+        self.masks = self.separate_mask(self.mask)
 
     def classify_img(self, impath):
         self.impath = impath
@@ -307,7 +307,8 @@ class CrackPy:
         return self.pixel_mm_ratio
 
     def sep_masks(self):
-        return self.separate_mask(self.mask)
+        self.masks = self.separate_mask(self.mask)
+        return self.masks
 
     def list_labels(self):
         labels = ["back", "spec", "mat", "crack", "pore"]
