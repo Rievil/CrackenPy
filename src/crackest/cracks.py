@@ -233,7 +233,7 @@ class CrackPy:
 
         self.mask = blank_image
         self.has_mask = True
-        self.__separate_mask__()
+        self.__separate_mask__(self.mask)
 
     def classify_img(self, impath):
         self.impath = impath
@@ -250,8 +250,7 @@ class CrackPy:
         self.mm_ratio_set = False
         if impath is not None:
             self.impath = impath
-            self.img = cv2.imread(impath, cv2.COLOR_BGR2RGB)
-            # self.__read_img__()
+            self.__read_img__()
         elif (impath is None) & (img is not None):
             self.img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
             self.imgo = self.img
@@ -308,8 +307,7 @@ class CrackPy:
         return self.pixel_mm_ratio
 
     def sep_masks(self):
-        self.__separate_mask__()
-        return self.masks
+        return self.separate_mask(self.mask)
 
     def list_labels(self):
         labels = ["back", "spec", "mat", "crack", "pore"]
@@ -419,29 +417,29 @@ class CrackPy:
             masked = masked.cpu().squeeze(0)
         return masked
 
-    def __separate_mask__(self):
-        back_bw = self.mask[:, :] == 0
+    def separate_mask(self, mask):
+        back_bw = mask[:, :] == 0
         spec_bw = ~back_bw
 
         spec_bw = spec_bw.astype(np.uint8)
         back_bw = back_bw.astype(np.uint8)
 
-        mat_bwo = self.mask[:, :] == 1
+        mat_bwo = mask[:, :] == 1
         mat_bwo = mat_bwo.astype(np.uint8)
 
-        crack_bw = self.mask[:, :] == 2
+        crack_bw = mask[:, :] == 2
         crack_bw = crack_bw.astype(np.uint8)
 
-        pore_bw = self.mask[:, :] == 3
+        pore_bw = mask[:, :] == 3
         pore_bw = pore_bw.astype(np.uint8)
-
-        self.masks = {
+        masks = {
             "back": back_bw,
             "spec": spec_bw,
             "mat": mat_bwo,
             "crack": crack_bw,
             "pore": pore_bw,
         }
+        return masks
 
     def __meas_pores__(self):
         image_pore = self.masks["pore"]

@@ -194,6 +194,9 @@ class CrackAn:
         self.imformat = "png"
         self.regime = "folder"
         self.hasilist = False
+        self.loaded_img_id = 0
+        self.reg_img = []
+        self.reg_mask = []
 
     def __measure_specimen__(self, specmask):
         spec_bw = self._getspec_(specmask)
@@ -232,6 +235,7 @@ class CrackAn:
                     {
                         "folder": root,
                         "name": name,
+                        "filename": file_path,
                         "modified": modified,
                         "date": date,
                     },
@@ -451,16 +455,7 @@ class CrackAn:
 
             self.currimg_index = currimg
 
-            if self.imglist["folder"][self.currimg_index].count("/") > 0:
-                filename = r"{:s}/{:s}".format(
-                    self.imglist["folder"][self.currimg_index],
-                    self.imglist["name"][self.currimg_index],
-                )
-            else:
-                filename = r"{:s}\{:s}".format(
-                    self.imglist["folder"][self.currimg_index],
-                    self.imglist["name"][self.currimg_index],
-                )
+            filename = self.imglist["filename"][self.currimg_index]
             # self.cracpy
         elif self.regime == "file":
             self.currimg_index = 0
@@ -470,6 +465,8 @@ class CrackAn:
         print(filename)
         self.cracpy.get_mask(impath=filename, **self.cracpy_sett)
         self.cracpy.sep_masks()
+        self.reg_img = self.cracpy.img
+        self.reg_mask = self.cracpy.mask
 
         reg_props = (
             "area",
@@ -736,43 +733,30 @@ class CrackAn:
         sbox = self.specimens["sbbox"][specid]
 
         if self.regime == "folder":
-            impath = r"{:s}\\{:s}".format(
-                self.imglist["folder"][imgindex],
-                self.imglist["name"][imgindex],
-            )
+            impath = self.imglist["filename"][imgindex]
+        else:
+            impath = self.imfile
 
-            self.cracpy.get_img(impath)
+        if (self.currimg_index != imgindex) | (self.cracpy.img_read == False):
+            self.cracpy.get_mask(impath)
 
-            img = self.cracpy.img.copy()
-            imgr = np.zeros([bbox[2] - bbox[0], bbox[3] - bbox[1], 3])
-            imgr = img[bbox[0] : bbox[2], bbox[1] : bbox[3], :]
+        img = self.cracpy.img
+        mask = self.cracpy.mask
 
-            img_r = self.__rotate_image__(imgr, self.specimens["angle"][specid])
-            sbox_c = self.__check_bbox__(sbox, img_r.shape, frame)
+        imgr = np.zeros([bbox[2] - bbox[0], bbox[3] - bbox[1], 3])
+        imgr = img[bbox[0] : bbox[2], bbox[1] : bbox[3], :]
 
-            img_r = img_r[sbox_c[0] : sbox_c[1], sbox_c[2] : sbox_c[3], :]
+        maskr = np.zeros([bbox[2] - bbox[0], bbox[3] - bbox[1]])
+        maskr = mask[bbox[0] : bbox[2], bbox[1] : bbox[3]]
 
-            if getmask == True:
-                self.cracpy.get_mask(img=img_r)
+        imgr = self.__rotate_image__(imgr, -self.specimens["angle"][specid])
+        maskr = self.__rotate_image__(maskr, -self.specimens["angle"][specid])
 
-        elif self.regime == "file":
-            img = self.cracpy.img
-            mask = self.cracpy.mask
+        sboxn = self.__subcrop__(maskr)
+        sbox_c = self.__check_bbox__(sboxn, imgr.shape, frame)
 
-            imgr = np.zeros([bbox[2] - bbox[0], bbox[3] - bbox[1], 3])
-            imgr = img[bbox[0] : bbox[2], bbox[1] : bbox[3], :]
-
-            maskr = np.zeros([bbox[2] - bbox[0], bbox[3] - bbox[1]])
-            maskr = mask[bbox[0] : bbox[2], bbox[1] : bbox[3]]
-
-            imgr = self.__rotate_image__(imgr, -self.specimens["angle"][specid])
-            maskr = self.__rotate_image__(maskr, -self.specimens["angle"][specid])
-
-            sboxn = self.__subcrop__(maskr)
-            sbox_c = self.__check_bbox__(sboxn, imgr.shape, frame)
-
-            self.cracpy.img = imgr[sbox_c[0] : sbox_c[1], sbox_c[2] : sbox_c[3], :]
-            self.cracpy.mask = maskr[sbox_c[0] : sbox_c[1], sbox_c[2] : sbox_c[3]]
+        img_r = imgr[sbox_c[0] : sbox_c[1], sbox_c[2] : sbox_c[3], :]
+        mask_r = maskr[sbox_c[0] : sbox_c[1], sbox_c[2] : sbox_c[3]]
 
         if label is None:
             if self.regime == "folder":
@@ -793,7 +777,7 @@ class CrackAn:
             img_r = self.__anotate_img__(img_r, prog, label)
 
         sett = self.specimens["sett"][specid]
-        spec = SubSpec(self.cracpy.img, self.cracpy.sep_masks(), sett)
+        spec = SubSpec(img_r, self.cracpy.separate_mask(mask_r), sett)
 
         return spec
 
