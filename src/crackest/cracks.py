@@ -264,7 +264,8 @@ class CrackPy:
         self.iterate_mask()
 
     def set_ratio(self, length=None, width=None):
-        self.cran.set_ratio(length, width)
+        self.cran.set_ratio(length=None, width=None)
+
         # self.mm_ratio_set = True
         # reg_props = (
         #     "area",
@@ -315,6 +316,7 @@ class CrackPy:
         return labels
 
     def get_metrics(self):
+        self.sep_masks()
         self.cran.node_analysis()
         self.cran.basic_cnn_metrics()
         return self.cran.metrics
