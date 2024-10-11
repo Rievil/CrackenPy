@@ -707,38 +707,60 @@ class CrackAnalyzer:
         self.metrics["average_angle"] = mean_angle_weighted
 
     def set_ratio(self, length=None, width=None):
-        self.mm_ratio_set = True
+        if self.has_contour == False:
+            self.get_countours()
 
-        if length is None:
-            self.length = 160
-        else:
-            self.length = length
+        mask = self.specimen_mask
 
-        if width is None:
-            self.width = 40
-        else:
-            self.width = width
+        w, h = mask.shape
 
-        mask = np.array(self.spec.masks["back"])
-        bw_mask = mask[:, :] == 0
-        bw_mask = ~bw_mask
+        hor_line = mask[int(w / 2 - 10) : int(w / 2 + 10), :].mean(axis=0)
+        hind = np.where(hor_line > 0)[0]
+        length_px = np.diff([hind[0], hind[-1]])
+        len_rat = length / length_px
 
-        image = bw_mask.astype(np.uint8)
-        label_img = label(image)
+        ver_line = mask[:, int(h / 2 - 10) : int(h / 2 + 10)].mean(axis=1)
+        vind = np.where(ver_line > 0)[0]
+        self.hor_coor = [vind[0], vind[-1]]
+        self.ver_coor = [hind[0], hind[-1]]
 
-        props_mat = regionprops_table(label_img, properties=self.reg_props)
+        width_px = np.diff([vind[0], vind[-1]])
+        wid_rat = width / width_px
+        print(self.pixel_mm_ratio)
+        self.pixel_mm_ratio = np.mean([len_rat, wid_rat])
 
-        self.orientation = props_mat["orientation"]
+        # self.mm_ratio_set = True
 
-        self.dfmat = pd.DataFrame(props_mat)
-        self.dfmat.sort_values(by=["area"], ascending=False, inplace=True)
-        self.dfmat = self.dfmat.reset_index(drop=True)
+        # if length is None:
+        #     self.length = 160
+        # else:
+        #     self.length = length
 
-        l_rat = self.length / self.dfmat["axis_major_length"][0]
-        w_rat = self.width / self.dfmat["axis_minor_length"][0]
+        # if width is None:
+        #     self.width = 40
+        # else:
+        #     self.width = width
 
-        m_rat = (l_rat + w_rat) / 2
-        self.pixel_mm_ratio = m_rat
+        # mask = np.array(self.spec.masks["back"])
+        # bw_mask = mask[:, :] == 0
+        # bw_mask = ~bw_mask
+
+        # image = bw_mask.astype(np.uint8)
+        # label_img = label(image)
+
+        # props_mat = regionprops_table(label_img, properties=self.reg_props)
+
+        # self.orientation = props_mat["orientation"]
+
+        # self.dfmat = pd.DataFrame(props_mat)
+        # self.dfmat.sort_values(by=["area"], ascending=False, inplace=True)
+        # self.dfmat = self.dfmat.reset_index(drop=True)
+
+        # l_rat = self.length / self.dfmat["axis_major_length"][0]
+        # w_rat = self.width / self.dfmat["axis_minor_length"][0]
+
+        # m_rat = (l_rat + w_rat) / 2
+        # self.pixel_mm_ratio = m_rat
 
     def get_equations(self):
         """Get main equations for main and secondary axis of the specimen"""

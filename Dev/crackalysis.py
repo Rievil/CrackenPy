@@ -719,6 +719,9 @@ class CrackAnalyzer:
 
         ver_line = mask[:, int(h / 2 - 10) : int(h / 2 + 10)].mean(axis=1)
         vind = np.where(ver_line > 0)[0]
+        self.hor_coor = [vind[0], vind[-1]]
+        self.ver_coor = [hind[0], hind[-1]]
+
         width_px = np.diff([vind[0], vind[-1]])
         wid_rat = width / width_px
         print(self.pixel_mm_ratio)
