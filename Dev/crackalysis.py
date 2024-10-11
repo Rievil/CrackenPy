@@ -39,12 +39,8 @@ class SubSpec:
 
         return self.cran.metrics
 
-    def set_ratio(self, length: float = 160, width: float = 40, ratio: int = 1):
-        self.length = length
-        self.width = width
-        self.ratio = 1
-
-        pass
+    def set_ratio(self, length: float = 160, width: float = 40):
+        self.cran.set_ratio(length=length, width=width)
 
 
 class CrackAn:
@@ -719,12 +715,13 @@ class CrackAnalyzer:
         hor_line = mask[int(w / 2 - 10) : int(w / 2 + 10), :].mean(axis=0)
         hind = np.where(hor_line > 0)[0]
         length_px = np.diff([hind[0], hind[-1]])
-        len_rat = length_px / length
+        len_rat = length / length_px
 
         ver_line = mask[:, int(h / 2 - 10) : int(h / 2 + 10)].mean(axis=1)
         vind = np.where(ver_line > 0)[0]
         width_px = np.diff([vind[0], vind[-1]])
-        wid_rat = width_px / width
+        wid_rat = width / width_px
+        print(self.pixel_mm_ratio)
         self.pixel_mm_ratio = np.mean([len_rat, wid_rat])
 
     def get_equations(self):
