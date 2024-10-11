@@ -287,7 +287,7 @@ class CrackPy:
         self.sep_masks()
         self.cran.node_analysis()
         self.cran.basic_cnn_metrics()
-        return self.cran.metrics
+        return self.cran.metrics.copy()
 
     def __loadmodel__(self):
         if self.is_cuda == True:
