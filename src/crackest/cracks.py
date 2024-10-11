@@ -250,7 +250,7 @@ class CrackPy:
         self.mm_ratio_set = False
         if impath is not None:
             self.impath = impath
-            self.img = cv2.cvtColor(impath, cv2.COLOR_BGR2RGB)
+            self.img = cv2.imread(impath, cv2.COLOR_BGR2RGB)
             # self.__read_img__()
         elif (impath is None) & (img is not None):
             self.img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
