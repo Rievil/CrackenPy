@@ -16,20 +16,166 @@ import numpy as np
 from matplotlib import pyplot as plt
 from skimage.transform import rotate
 from crackest import cracks as cr
+from skimage.morphology import skeletonize
 import os
 import datetime
 from tqdm import tqdm
+import sknw
 
 
 class SubSpec:
-    def __init__(self, spec, sett):
-        self.spec = spec
+    def __init__(self, img, mask: dict, sett):
+        self.img = img
+        self.masks = mask  # dictionary
         self.sett = sett
-        # self.angle
-        # self.bounding box
-        # self.axis
-        # self.contour
+        self.reg_props = (
+            "area",
+            "centroid",
+            "orientation",
+            "axis_major_length",
+            "axis_minor_length",
+            "bbox",
+        )
+        self.cran = CrackAnalyzer(self)
         pass
+
+    def get_metrics(self):
+        self.build_graph()
+        self.cran.set_grapth(self.graph)
+        df_nodes, df_edges = self.cran.analyze_cracks()
+
+        mean_angle_weighted = (df_edges["angle"] * df_edges["length"]).sum() / df_edges[
+            "length"
+        ].sum()
+
+        self.metrics = {
+            "edge_per_node": df_nodes["num_edges"].mean(),
+            "crack_tot_length": df_edges["length"].sum(),
+            "average_angle": mean_angle_weighted,
+        }
+        return self.metrics
+
+    def set_ratio(self, length: float = 160, width: float = 40, ratio: int = 1):
+        self.length = length
+        self.width = width
+        self.ratio = 1
+
+        pass
+
+    def get_countours(self):
+        r = self.mask[:, :] == 0
+        r = (~r).astype(np.uint8)
+
+        total_area = r.shape[0] * r.shape[1]
+        area_trsh = int(total_area * 0.3)
+
+        kernel = np.ones((20, 20), np.uint8)
+        r = cv2.erode(r, kernel)
+        r = cv2.dilate(r, kernel, iterations=1)
+
+        contours = measure.find_contours(r, 0.8)
+
+        area = 0
+        for i in range(len(contours)):
+            count = contours[i]
+            c = np.expand_dims(count.astype(np.float32), 1)
+            c = cv2.UMat(c)
+            area = cv2.contourArea(c)
+            if area > area_trsh:
+                break
+
+        image_height, image_width = (
+            r.shape[0],
+            r.shape[1],
+        )  # Replace with your actual image size
+        mask = np.zeros((image_height, image_width), dtype=np.uint8)
+
+        # Fill the area inside the contour with 1
+        cv2.fillPoly(mask, [count], color=1)
+
+        self.specimen_mask = mask
+        self.area_treashold = area_trsh
+        self.area = area
+        self.contour = count
+
+    def build_graph(self):
+        self.eq = self.get_equations()
+
+        # Filter only cracks mask
+        crack_bw = self.masks[:, :] == 2
+        crack_bw = crack_bw.astype(np.uint8)
+
+        # Determine the distance transform.
+        skel = skeletonize(crack_bw, method="lee")
+
+        # build graph from skeleton
+        self.skeleton = skel
+        self.graph = sknw.build_sknw(skel, multi=False)
+
+    def get_equations(self):
+        """Get main equations for main and secondary axis of the specimen"""
+        # mask = np.array(cp.mask)
+        bw_mask = self.masks[:, :] == 0
+        bw_mask = ~bw_mask
+
+        image = bw_mask.astype(np.uint8)
+        label_img = label(image)
+        # regions = regionprops(label_img)
+
+        props_mat = regionprops_table(label_img, properties=self.reg_props)
+        dfmat = pd.DataFrame(props_mat)
+        dfmat.sort_values(by=["area"], ascending=True)
+        dfmat = dfmat.reset_index()
+
+        #
+        dfii = pd.DataFrame()
+        for index, props in dfmat.iterrows():
+            # y0, x0 = props.centroid-0
+            if props["area"] > 2000:
+                y0 = props["centroid-0"]
+                x0 = props["centroid-1"]
+
+                orientation = props["orientation"]
+
+                rat1 = 0.43
+                x0i = x0 - math.cos(orientation) * rat1 * props["axis_minor_length"]
+                y0i = y0 + math.sin(orientation) * rat1 * props["axis_minor_length"]
+
+                x1 = x0 + math.cos(orientation) * rat1 * props["axis_minor_length"]
+                y1 = y0 - math.sin(orientation) * rat1 * props["axis_minor_length"]
+
+                rat2 = 0.43
+                x2i = x0 + math.sin(orientation) * rat2 * props["axis_major_length"]
+                y2i = y0 + math.cos(orientation) * rat2 * props["axis_major_length"]
+
+                x2 = x0 - math.sin(orientation) * rat2 * props["axis_major_length"]
+                y2 = y0 - math.cos(orientation) * rat2 * props["axis_major_length"]
+
+                he = {"alpha": (y0i - y1) / (x0i - x1)}
+                he["beta"] = y1 - he["alpha"] * x1
+                he["len"] = props["axis_minor_length"]
+                he["label"] = "width"
+
+                ve = {"alpha": (y2i - y2) / (x2i - x2)}
+                ve["beta"] = y2 - ve["alpha"] * x2
+                ve["len"] = props["axis_major_length"]
+                ve["label"] = "length"
+
+                minr = int(props["bbox-0"])
+                minc = int(props["bbox-1"])
+                maxr = int(props["bbox-2"])
+                maxc = int(props["bbox-3"])
+
+                bx = (minc, maxc, maxc, minc, minc)
+                by = (minr, minr, maxr, maxr, minr)
+
+        eq = {"h": he, "v": ve}
+        xin = (eq["h"]["beta"] - eq["v"]["beta"]) / (
+            eq["v"]["alpha"] - eq["h"]["alpha"]
+        )
+        yin = xin * eq["h"]["alpha"] + eq["h"]["beta"]
+        eq["center"] = (xin, yin)
+        return eq
 
 
 class CrackAn:
@@ -49,7 +195,7 @@ class CrackAn:
         self.regime = "folder"
         self.hasilist = False
 
-    def __MeasureSpecimen__(self, specmask):
+    def __measure_specimen__(self, specmask):
         spec_bw = self._getspec_(specmask)
 
         r = spec_bw.astype(np.uint8)
@@ -70,12 +216,15 @@ class CrackAn:
         r = ~r
         return r
 
-    def MakeIList(self, folder):
+    def make_img_list(self, folder):
         df = pd.DataFrame()
         for root, dirs, files in os.walk(folder, topdown=False):
             for name in files:
-                file_path = root + "/" + name
-                created = os.path.getctime(file_path)
+                if root.count("/") > 0:
+                    file_path = r"{:s}/{:s}".format(root, name)
+                else:
+                    file_path = r"{:s}\{:s}".format(root, name)
+
                 modified = os.path.getmtime(file_path)
 
                 date = datetime.datetime.fromtimestamp(modified)
@@ -100,9 +249,7 @@ class CrackAn:
         df = df.sort_values(by="order", ascending=True, ignore_index=True)
 
         t1 = df["date"][0]
-        offset = (
-            t1.hour / 24 + t1.minute / (24 * 60) + t1.second / (24 * 60 * 60)
-        )
+        offset = t1.hour / 24 + t1.minute / (24 * 60) + t1.second / (24 * 60 * 60)
 
         df["order"] = df["order"] / (24 * 3600) + offset
 
@@ -159,8 +306,8 @@ class CrackAn:
 
         return rotated_mat
 
-    def Input(self, file=None, folder=None, **kwargs):
-        options = {"gamma_correction": 1, "black_level": 1}
+    def input(self, file=None, folder=None, **kwargs):
+        options = {"gamma": 1, "black_level": 1}
         options.update(kwargs)
         self.cracpy_sett = kwargs
 
@@ -171,7 +318,7 @@ class CrackAn:
         if folder is not None:
             self.folder = folder
             self.regime = "folder"
-            self.MakeIList(folder)
+            self.make_img_list(folder)
 
     def __stabil_img__(self, img, sett):
         pass
@@ -231,9 +378,7 @@ class CrackAn:
 
         xpoints = np.linspace(startp[0], endp[0] - 10, 11)
 
-        img2 = cv2.rectangle(
-            img2, startp, endp, color=(255, 255, 255), thickness=-1
-        )
+        img2 = cv2.rectangle(img2, startp, endp, color=(255, 255, 255), thickness=-1)
         if prog >= 0.01:
             img2 = cv2.rectangle(
                 img2, startp_prog, endp_prog, color=(0, 0, 0), thickness=-1
@@ -248,9 +393,7 @@ class CrackAn:
         ]
         r_endp = [he - frame, wi - (frame + height + bwspace * 3)]
 
-        img2 = cv2.rectangle(
-            img2, r_startp, r_endp, color=(150, 50, 50), thickness=-1
-        )
+        img2 = cv2.rectangle(img2, r_startp, r_endp, color=(150, 50, 50), thickness=-1)
 
         img2 = cv2.putText(
             img2,
@@ -265,7 +408,7 @@ class CrackAn:
 
         return img2
 
-    def ShowRegistr(self, trsh=0.8):
+    def preview(self, trsh=0.8):
         df = self.specimens
         df = df[df["cover"] > trsh]
 
@@ -292,18 +435,29 @@ class CrackAn:
         ax.get_xaxis().set_ticks([])
         ax.get_yaxis().set_ticks([])
         fig.tight_layout()
-        return fig
+        self.fig = fig
+        self.ax = ax
 
-    def Registr(self, currimg=0, frame=10):
+    def registr(self, currimg=0, frame=10):
         if self.regime == "folder":
             if self.hasilist == False:
-                print(
-                    "Error: No Ilist created, specify the folder with images to process"
+                if len(self.folder) > 0:
+                    self.make_img_list(self.folder)
+                else:
+                    print(
+                        "Error: No folder given , specify the folder with images to process"
+                    )
+                    return
+
+            self.currimg_index = currimg
+
+            if self.imglist["folder"][self.currimg_index].count("/") > 0:
+                filename = r"{:s}/{:s}".format(
+                    self.imglist["folder"][self.currimg_index],
+                    self.imglist["name"][self.currimg_index],
                 )
-                return
             else:
-                self.currimg_index = currimg
-                filename = r"{:s}\\{:s}".format(
+                filename = r"{:s}\{:s}".format(
                     self.imglist["folder"][self.currimg_index],
                     self.imglist["name"][self.currimg_index],
                 )
@@ -313,8 +467,9 @@ class CrackAn:
             filename = self.imfile
             pass
 
-        self.cracpy.GetMask(impath=filename, **self.cracpy_sett)
-        self.cracpy.SepMasks()
+        print(filename)
+        self.cracpy.get_mask(impath=filename, **self.cracpy_sett)
+        self.cracpy.sep_masks()
 
         reg_props = (
             "area",
@@ -332,6 +487,9 @@ class CrackAn:
         bw_mask = cv2.erode(bw_mask, kernel)
 
         shape = bw_mask.shape
+        shape = bw_mask.shape
+        img_area = bw_mask.shape[0] * bw_mask.shape[1]
+        self.area_trh = int(img_area * 0.1)
 
         image = bw_mask.astype(np.uint8)
         label_img = label(image)
@@ -345,7 +503,7 @@ class CrackAn:
         dfii = pd.DataFrame()
         n = 0
         for index, props in dfmat.iterrows():
-            if props["area"] > 1000:
+            if props["area"] > self.area_trh:
                 n = n + 1
                 y0 = props["centroid-0"]
                 x0 = props["centroid-1"]
@@ -356,42 +514,18 @@ class CrackAn:
                 # Imigae by image > specimens on image in paralel
 
                 rat1 = 0.43
-                x0i = (
-                    x0
-                    - math.cos(orientation) * rat1 * props["axis_minor_length"]
-                )
-                y0i = (
-                    y0
-                    + math.sin(orientation) * rat1 * props["axis_minor_length"]
-                )
+                x0i = x0 - math.cos(orientation) * rat1 * props["axis_minor_length"]
+                y0i = y0 + math.sin(orientation) * rat1 * props["axis_minor_length"]
 
-                x1 = (
-                    x0
-                    + math.cos(orientation) * rat1 * props["axis_minor_length"]
-                )
-                y1 = (
-                    y0
-                    - math.sin(orientation) * rat1 * props["axis_minor_length"]
-                )
+                x1 = x0 + math.cos(orientation) * rat1 * props["axis_minor_length"]
+                y1 = y0 - math.sin(orientation) * rat1 * props["axis_minor_length"]
 
                 rat2 = 0.43
-                x2i = (
-                    x0
-                    + math.sin(orientation) * rat2 * props["axis_major_length"]
-                )
-                y2i = (
-                    y0
-                    + math.cos(orientation) * rat2 * props["axis_major_length"]
-                )
+                x2i = x0 + math.sin(orientation) * rat2 * props["axis_major_length"]
+                y2i = y0 + math.cos(orientation) * rat2 * props["axis_major_length"]
 
-                x2 = (
-                    x0
-                    - math.sin(orientation) * rat2 * props["axis_major_length"]
-                )
-                y2 = (
-                    y0
-                    - math.cos(orientation) * rat2 * props["axis_major_length"]
-                )
+                x2 = x0 - math.sin(orientation) * rat2 * props["axis_major_length"]
+                y2 = y0 - math.cos(orientation) * rat2 * props["axis_major_length"]
 
                 he = {"alpha": (y0i - y1) / (x0i - x1)}
                 he["beta"] = y1 - he["alpha"] * x1
@@ -418,9 +552,7 @@ class CrackAn:
                 imgr = np.zeros([bbox[2] - bbox[0], bbox[3] - bbox[1], 3])
                 maskr = np.zeros([bbox[2] - bbox[0], bbox[3] - bbox[1]])
 
-                img_r = self.cracpy.img[
-                    bbox[0] : bbox[2], bbox[1] : bbox[3], :
-                ]
+                img_r = self.cracpy.img[bbox[0] : bbox[2], bbox[1] : bbox[3], :]
                 mask_r = self.cracpy.mask[bbox[0] : bbox[2], bbox[1] : bbox[3]]
 
                 rows, cols, channels = imgr.shape
@@ -463,7 +595,7 @@ class CrackAn:
                 yin = xin * eq["h"]["alpha"] + eq["h"]["beta"]
                 eq["center"] = (xin, yin)
 
-                [contour, speccenter] = self.__MeasureSpecimen__(mask_r)
+                [contour, speccenter] = self.__measure_specimen__(mask_r)
 
                 spec = {
                     "img": img_r,
@@ -473,6 +605,7 @@ class CrackAn:
                     "eq_axis": eq,
                 }
 
+                # SubSpec(img_r,masks,sett)
                 # sub_spec = SubSpec(spec, sett)
 
                 dfii = pd.concat(
@@ -490,8 +623,8 @@ class CrackAn:
                                 "eq": [eq],
                                 "sett": [sett],
                                 "ratio": 0,
-                                "sub_spec": sub_spec,
-                            }
+                            },
+                            index=[0],
                         ),
                     ],
                     ignore_index=True,
@@ -499,25 +632,17 @@ class CrackAn:
                 )
 
                 dfii = dfii.sort_values(by="area", ascending=False)
-                # dfii=dfii.reset_index()
-
         dfii["cover"] = dfii["area"].values / dfii["area"].max()
 
         self.specimens = dfii
 
         return dfii
 
-    def MakeVideo(
-        self, spid=0, filename="Output.avi", imrange=None, vidframe=0
-    ):
+    def MakeVideo(self, spid=0, filename="Output.avi", imrange=None, vidframe=0):
         n = 0
 
-        for index, row in tqdm(
-            self.imglist.iterrows(), total=self.imglist.shape[0]
-        ):
-            imgr = self.GetSubImg(
-                index, specid=spid, anotate=True, frame=vidframe
-            )
+        for index, row in tqdm(self.imglist.iterrows(), total=self.imglist.shape[0]):
+            imgr = self.get_spec(index, specid=spid, anotate=True, frame=vidframe)
             if n == 0:
                 fourcc = cv2.VideoWriter_fourcc(*"XVID")
                 size = [imgr.shape[1], imgr.shape[0]]
@@ -597,7 +722,7 @@ class CrackAn:
         )
         return finratio
 
-    def GetSubImg(
+    def get_spec(
         self,
         imgindex=0,
         specid=0,
@@ -616,22 +741,19 @@ class CrackAn:
                 self.imglist["name"][imgindex],
             )
 
-            self.cracpy.GetImg(impath)
+            self.cracpy.get_img(impath)
 
             img = self.cracpy.img.copy()
             imgr = np.zeros([bbox[2] - bbox[0], bbox[3] - bbox[1], 3])
             imgr = img[bbox[0] : bbox[2], bbox[1] : bbox[3], :]
 
-            img_r = self.__rotate_image__(
-                imgr, self.specimens["angle"][specid]
-            )
+            img_r = self.__rotate_image__(imgr, self.specimens["angle"][specid])
             sbox_c = self.__check_bbox__(sbox, img_r.shape, frame)
 
             img_r = img_r[sbox_c[0] : sbox_c[1], sbox_c[2] : sbox_c[3], :]
 
             if getmask == True:
-                self.cracpy.GetMask(img=img_r)
-                mask_r = self.cracpy.mask
+                self.cracpy.get_mask(img=img_r)
 
         elif self.regime == "file":
             img = self.cracpy.img
@@ -643,21 +765,14 @@ class CrackAn:
             maskr = np.zeros([bbox[2] - bbox[0], bbox[3] - bbox[1]])
             maskr = mask[bbox[0] : bbox[2], bbox[1] : bbox[3]]
 
-            imgr = self.__rotate_image__(
-                imgr, -self.specimens["angle"][specid]
-            )
-            maskr = self.__rotate_image__(
-                maskr, -self.specimens["angle"][specid]
-            )
+            imgr = self.__rotate_image__(imgr, -self.specimens["angle"][specid])
+            maskr = self.__rotate_image__(maskr, -self.specimens["angle"][specid])
 
             sboxn = self.__subcrop__(maskr)
             sbox_c = self.__check_bbox__(sboxn, imgr.shape, frame)
 
-            # print(sbox_c)
-            # img_r=imgr
-            # mask_r=maskr
-            img_r = imgr[sbox_c[0] : sbox_c[1], sbox_c[2] : sbox_c[3], :]
-            mask_r = maskr[sbox_c[0] : sbox_c[1], sbox_c[2] : sbox_c[3]]
+            self.cracpy.img = imgr[sbox_c[0] : sbox_c[1], sbox_c[2] : sbox_c[3], :]
+            self.cracpy.mask = maskr[sbox_c[0] : sbox_c[1], sbox_c[2] : sbox_c[3]]
 
         if label is None:
             if self.regime == "folder":
@@ -674,26 +789,22 @@ class CrackAn:
             elif self.regime == "file":
                 prog = 0
 
-        self.subspec = {
-            "ID": specid,
-            "ImgID": imgindex,
-            "mask": mask_r,
-            "img": img_r,
-        }
-        self.subspec["ratio"] = self.MakeRatio(length=160, width=40)
-
         if anotate == True:
             img_r = self.__anotate_img__(img_r, prog, label)
 
-        return img_r, mask_r
-        # img_r=rotate(cp.img[minr:maxr,minc:maxc,:], orientation)
-        # mask_r=rotate(cp.mask[minr:maxr,minc:maxc], orientation)
+        sett = self.specimens["sett"][specid]
+        spec = SubSpec(self.cracpy.img, self.cracpy.sep_masks(), sett)
+
+        return spec
 
 
 class CrackAnalyzer:
     """Analyze crack patterns in the crack graph."""
 
-    def __init__(self, graph, min_number_of_crack_points: int = 20):
+    def __init__(self, spec):
+        self.spec = spec
+
+    def set_grapth(self, graph, min_number_of_crack_points: int = 20):
         self.graph = graph
         self.min_number_of_crack_points = min_number_of_crack_points
 
@@ -707,9 +818,7 @@ class CrackAnalyzer:
         length = 0
         angle_deg_length = 0
         for i in range(len(pts) - 1):
-            seg_length, seg_angle_deg = self._analyze_crack_segment(
-                pts[i], pts[i + 1]
-            )
+            seg_length, seg_angle_deg = self._analyze_crack_segment(pts[i], pts[i + 1])
             length += seg_length
             angle_deg_length += seg_angle_deg * seg_length
         angle_deg = angle_deg_length / length  # weighted mean
@@ -782,19 +891,14 @@ class CrackAnalyzer:
 
         return df_nodes, df_edges
 
-    def plot_cracks(
-        self, img_r: np.ndarray, selected_edge_ids: list | None = None
-    ):
+    def plot_cracks(self, img_r: np.ndarray, selected_edge_ids: list | None = None):
         """Plot image with nodes and edges (cracks). Specific cracks can be selected by edge_ids."""
         fig, ax = plt.subplots(1, 1, figsize=(12, 4))
         ax.imshow(img_r, cmap="gray")
 
         for start_node_id, end_node_id in self.graph.edges():
             edge_id = self.create_edge_id(start_node_id, end_node_id)
-            if (
-                selected_edge_ids is not None
-                and edge_id not in selected_edge_ids
-            ):
+            if selected_edge_ids is not None and edge_id not in selected_edge_ids:
                 continue
 
             pts = self.graph.get_edge_data(start_node_id, end_node_id)["pts"]

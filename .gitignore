@@ -7,3 +7,4 @@ src/CrackPy.egg-info/PKG-INFO
 .spyproject/
 __pycache__/
 *.venv/
+Examples/.DS_Store

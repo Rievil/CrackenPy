@@ -5,7 +5,8 @@ import matplotlib.pyplot as plt
 
 class CrackAnalyzer:
     """Analyze crack patterns in the crack graph."""
-    def __init__(self, graph, min_number_of_crack_points: int=20):
+
+    def __init__(self, graph, min_number_of_crack_points: int = 20):
         self.graph = graph
         self.min_number_of_crack_points = min_number_of_crack_points
 
@@ -41,7 +42,9 @@ class CrackAnalyzer:
         # swapped X and Y coordinates?
         delta_y = pt2[0] - pt1[0]
         delta_x = pt2[1] - pt1[1]
-        angle_deg = np.degrees(np.arctan2(delta_y, delta_x))  # https://en.wikipedia.org/wiki/Atan2
+        angle_deg = np.degrees(
+            np.arctan2(delta_y, delta_x)
+        )  # https://en.wikipedia.org/wiki/Atan2
         if angle_deg < 0:  # only positive angle
             angle_deg += 180
 
@@ -65,8 +68,14 @@ class CrackAnalyzer:
 
     def analyze_cracks(self):
         """Returns dataframes with node and edge parameters for further analysis."""
-        df_nodes = pd.DataFrame(columns=["coordinates", "num_edges", "neighboring_nodes"], index=pd.Index([], name="node_id"))
-        df_edges = pd.DataFrame(columns=["num_pts", "start_node", "end_node", "length", "angle"], index=pd.Index([], name="edge_id"))
+        df_nodes = pd.DataFrame(
+            columns=["coordinates", "num_edges", "neighboring_nodes"],
+            index=pd.Index([], name="node_id"),
+        )
+        df_edges = pd.DataFrame(
+            columns=["num_pts", "start_node", "end_node", "length", "angle"],
+            index=pd.Index([], name="edge_id"),
+        )
         for start_node_id, end_node_id in self.graph.edges():
             pts = self.graph.get_edge_data(start_node_id, end_node_id)["pts"]
             if pts.shape[0] > self.min_number_of_crack_points:
