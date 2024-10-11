@@ -40,6 +40,15 @@ import pkg_resources
 import gdown
 import crackpy_models
 
+
+import matplotlib.pyplot as plt
+from mpl_toolkits.axes_grid1 import make_axes_locatable
+import numpy as np
+from matplotlib.colors import ListedColormap
+from mpl_toolkits.axes_grid1 import make_axes_locatable
+from matplotlib.patches import Rectangle
+
+
 os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
 
 ONLINE_CRACKPY_MODELS = {
@@ -266,47 +275,6 @@ class CrackPy:
     def set_ratio(self, length=None, width=None):
         self.cran.set_ratio(length=None, width=None)
 
-        # self.mm_ratio_set = True
-        # reg_props = (
-        #     "area",
-        #     "centroid",
-        #     "orientation",
-        #     "axis_major_length",
-        #     "axis_minor_length",
-        # )
-
-        # if length is None:
-        #     self.length = 160
-        # else:
-        #     self.length = length
-
-        # if width is None:
-        #     self.width = 40
-        # else:
-        #     self.width = width
-
-        # mask = np.array(self.mask)
-        # bw_mask = mask[:, :] == 0
-        # bw_mask = ~bw_mask
-
-        # image = bw_mask.astype(np.uint8)
-        # label_img = label(image)
-
-        # props_mat = regionprops_table(label_img, properties=reg_props)
-
-        # self.orientation = props_mat["orientation"]
-
-        # self.dfmat = pd.DataFrame(props_mat)
-        # self.dfmat.sort_values(by=["area"], ascending=False, inplace=True)
-        # self.dfmat = self.dfmat.reset_index(drop=True)
-
-        # l_rat = self.length / self.dfmat["axis_major_length"][0]
-        # w_rat = self.width / self.dfmat["axis_minor_length"][0]
-
-        # m_rat = (l_rat + w_rat) / 2
-        # self.pixel_mm_ratio = m_rat
-        # return self.pixel_mm_ratio
-
     def sep_masks(self):
         self.masks = self.separate_mask(self.mask)
         return self.masks
@@ -320,44 +288,6 @@ class CrackPy:
         self.cran.node_analysis()
         self.cran.basic_cnn_metrics()
         return self.cran.metrics
-
-        # self.__SeparateMask__()
-
-        # kernel = np.ones((50, 50), np.uint8)
-        # mat_bw = cv2.dilate(self.masks["mat"], kernel, iterations=1)
-        # mat_bw = cv2.erode(mat_bw, kernel)
-
-        # crack_bw = cv2.bitwise_and(mat_bw, self.masks["crack"])
-        # pore_bw = cv2.bitwise_and(mat_bw, self.masks["pore"])
-
-        # total_area = self.masks["back"].shape[0] * self.masks["back"].shape[1]
-        # back_area = self.masks["back"].sum()
-        # spec_area = total_area - back_area
-        # crack_area = crack_bw.sum()
-        # pore_area = pore_bw.sum()
-
-        # mat_area = total_area - (crack_area + spec_area + pore_area)
-
-        # crack_ratio = crack_area / spec_area
-
-        # skel = skeletonize(crack_bw, method="lee")
-
-        # crack_length = skel.sum()
-        # crack_avg_thi = crack_area / crack_length
-
-        # result = {
-        #     "spec_area": spec_area * self.pixel_mm_ratio,
-        #     "mat_area": mat_area * self.pixel_mm_ratio,
-        #     "crack_area": crack_area * self.pixel_mm_ratio,
-        #     "crack_ratio": crack_ratio,
-        #     "crack_length": crack_length * self.pixel_mm_ratio,
-        #     "crack_thickness": crack_avg_thi * self.pixel_mm_ratio,
-        #     "pore_area": pore_area * self.pixel_mm_ratio,
-        # }
-
-        # self.bw_stats = result
-        # self.__meas_pores__()
-        # return result
 
     def __loadmodel__(self):
         if self.is_cuda == True:
@@ -447,36 +377,6 @@ class CrackPy:
             "pore": pore_bw,
         }
         return masks
-
-    # def __meas_pores__(self):
-    #     image_pore = self.masks["pore"]
-    #     label_img_pore = label(image_pore)
-
-    #     props_pore = regionprops_table(label_img_pore, properties=self.reg_props)
-    #     dfpores = pd.DataFrame(props_pore)
-
-    #     mask = dfpores["area"] < 10
-    #     dfpores = dfpores[~mask]
-
-    #     dfpores.sort_values(by=["area"], ascending=False)
-    #     dfpores = dfpores.reset_index()
-
-    #     points = np.array([dfpores["centroid-1"], dfpores["centroid-0"]])
-    #     points = np.rot90(points)
-    #     arr = pdist(points, metric="minkowski")
-
-    #     avgdist = arr.mean()
-    #     area = dfpores["area"].mean()
-    #     self.bw_stats["avg_pore_distance"] = avgdist
-    #     self.bw_stats["avg_pore_size"] = area
-
-
-import matplotlib.pyplot as plt
-from mpl_toolkits.axes_grid1 import make_axes_locatable
-import numpy as np
-from matplotlib.colors import ListedColormap
-from mpl_toolkits.axes_grid1 import make_axes_locatable
-from matplotlib.patches import Rectangle
 
 
 class CrackPlot:

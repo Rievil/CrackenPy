@@ -46,42 +46,6 @@ class SubSpec:
 
         pass
 
-    def get_countours(self):
-        r = self.masks["back"]
-        r = (~r).astype(np.uint8)
-
-        total_area = r.shape[0] * r.shape[1]
-        area_trsh = int(total_area * 0.3)
-
-        kernel = np.ones((20, 20), np.uint8)
-        r = cv2.erode(r, kernel)
-        r = cv2.dilate(r, kernel, iterations=1)
-
-        contours = measure.find_contours(r, 0.8)
-
-        area = 0
-        for i in range(len(contours)):
-            count = contours[i]
-            c = np.expand_dims(count.astype(np.float32), 1)
-            c = cv2.UMat(c)
-            area = cv2.contourArea(c)
-            if area > area_trsh:
-                break
-
-        image_height, image_width = (
-            r.shape[0],
-            r.shape[1],
-        )  # Replace with your actual image size
-        mask = np.zeros((image_height, image_width), dtype=np.uint8)
-
-        # Fill the area inside the contour with 1
-        cv2.fillPoly(mask, [count], color=1)
-
-        self.specimen_mask = mask
-        self.area_treashold = area_trsh
-        self.area = area
-        self.contour = count
-
 
 class CrackAn:
     def __init__(self, cp=None):
@@ -694,6 +658,44 @@ class CrackAnalyzer:
         self.metrics = dict()
         self.pixel_mm_ratio = 1
         self.min_number_of_crack_points = 20
+        self.has_contour = False
+
+    def get_countours(self):
+        r = self.spec.masks["back"]
+        r = (~r).astype(np.uint8)
+
+        total_area = r.shape[0] * r.shape[1]
+        area_trsh = int(total_area * 0.3)
+
+        kernel = np.ones((20, 20), np.uint8)
+        r = cv2.erode(r, kernel)
+        r = cv2.dilate(r, kernel, iterations=1)
+
+        contours = measure.find_contours(r, 0.8)
+
+        area = 0
+        for i in range(len(contours)):
+            count = contours[i]
+            c = np.expand_dims(count.astype(np.float32), 1)
+            c = cv2.UMat(c)
+            area = cv2.contourArea(c)
+            if area > area_trsh:
+                break
+
+        image_height, image_width = (
+            r.shape[0],
+            r.shape[1],
+        )  # Replace with your actual image size
+        mask = np.zeros((image_height, image_width), dtype=np.uint8)
+
+        # Fill the area inside the contour with 1
+        cv2.fillPoly(mask, [count], color=1)
+
+        self.specimen_mask = mask
+        self.area_treashold = area_trsh
+        self.area = area
+        self.contour = count
+        self.has_contour = True
 
     def node_analysis(self):
         self.build_graph()
@@ -705,6 +707,25 @@ class CrackAnalyzer:
         self.metrics["edge_per_node"] = df_nodes["num_edges"].mean()
         self.metrics["crack_tot_length"] = df_edges["length"].sum()
         self.metrics["average_angle"] = mean_angle_weighted
+
+    def set_ratio(self, length=160, width=40):
+        if self.has_contour == False:
+            self.get_countours()
+
+        mask = self.specimen_mask
+
+        w, h = mask.shape
+
+        hor_line = mask[int(w / 2 - 10) : int(w / 2 + 10), :].mean(axis=0)
+        hind = np.where(hor_line > 0)[0]
+        length_px = np.diff([hind[0], hind[-1]])
+        len_rat = length_px / length
+
+        ver_line = mask[:, int(h / 2 - 10) : int(h / 2 + 10)].mean(axis=1)
+        vind = np.where(ver_line > 0)[0]
+        width_px = np.diff([vind[0], vind[-1]])
+        wid_rat = width_px / width
+        self.pixel_mm_ratio = np.mean([len_rat, wid_rat])
 
     def get_equations(self):
         """Get main equations for main and secondary axis of the specimen"""
