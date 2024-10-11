@@ -9,18 +9,18 @@ import numpy as np
 from skimage import measure
 import pandas as pd
 
-from skimage.measure import label, regionprops, regionprops_table
+from skimage.measure import label, regionprops_table
 import pandas as pd
 import math
 import numpy as np
 from matplotlib import pyplot as plt
-from skimage.transform import rotate
 from crackest import cracks as cr
 from skimage.morphology import skeletonize
 import os
 import datetime
 from tqdm import tqdm
 import sknw
+from scipy.spatial.distance import pdist
 
 
 class SubSpec:
@@ -28,32 +28,16 @@ class SubSpec:
         self.img = img
         self.masks = mask  # dictionary
         self.sett = sett
-        self.reg_props = (
-            "area",
-            "centroid",
-            "orientation",
-            "axis_major_length",
-            "axis_minor_length",
-            "bbox",
-        )
         self.cran = CrackAnalyzer(self)
+
+        # self.get_countours()
         pass
 
     def get_metrics(self):
-        self.build_graph()
-        self.cran.set_grapth(self.graph)
-        df_nodes, df_edges = self.cran.analyze_cracks()
+        self.cran.node_analysis()
+        self.cran.basic_cnn_metrics()
 
-        mean_angle_weighted = (df_edges["angle"] * df_edges["length"]).sum() / df_edges[
-            "length"
-        ].sum()
-
-        self.metrics = {
-            "edge_per_node": df_nodes["num_edges"].mean(),
-            "crack_tot_length": df_edges["length"].sum(),
-            "average_angle": mean_angle_weighted,
-        }
-        return self.metrics
+        return self.cran.metrics
 
     def set_ratio(self, length: float = 160, width: float = 40, ratio: int = 1):
         self.length = length
@@ -63,7 +47,7 @@ class SubSpec:
         pass
 
     def get_countours(self):
-        r = self.mask[:, :] == 0
+        r = self.masks["back"]
         r = (~r).astype(np.uint8)
 
         total_area = r.shape[0] * r.shape[1]
@@ -97,85 +81,6 @@ class SubSpec:
         self.area_treashold = area_trsh
         self.area = area
         self.contour = count
-
-    def build_graph(self):
-        self.eq = self.get_equations()
-
-        # Filter only cracks mask
-        crack_bw = self.masks[:, :] == 2
-        crack_bw = crack_bw.astype(np.uint8)
-
-        # Determine the distance transform.
-        skel = skeletonize(crack_bw, method="lee")
-
-        # build graph from skeleton
-        self.skeleton = skel
-        self.graph = sknw.build_sknw(skel, multi=False)
-
-    def get_equations(self):
-        """Get main equations for main and secondary axis of the specimen"""
-        # mask = np.array(cp.mask)
-        bw_mask = self.masks[:, :] == 0
-        bw_mask = ~bw_mask
-
-        image = bw_mask.astype(np.uint8)
-        label_img = label(image)
-        # regions = regionprops(label_img)
-
-        props_mat = regionprops_table(label_img, properties=self.reg_props)
-        dfmat = pd.DataFrame(props_mat)
-        dfmat.sort_values(by=["area"], ascending=True)
-        dfmat = dfmat.reset_index()
-
-        #
-        dfii = pd.DataFrame()
-        for index, props in dfmat.iterrows():
-            # y0, x0 = props.centroid-0
-            if props["area"] > 2000:
-                y0 = props["centroid-0"]
-                x0 = props["centroid-1"]
-
-                orientation = props["orientation"]
-
-                rat1 = 0.43
-                x0i = x0 - math.cos(orientation) * rat1 * props["axis_minor_length"]
-                y0i = y0 + math.sin(orientation) * rat1 * props["axis_minor_length"]
-
-                x1 = x0 + math.cos(orientation) * rat1 * props["axis_minor_length"]
-                y1 = y0 - math.sin(orientation) * rat1 * props["axis_minor_length"]
-
-                rat2 = 0.43
-                x2i = x0 + math.sin(orientation) * rat2 * props["axis_major_length"]
-                y2i = y0 + math.cos(orientation) * rat2 * props["axis_major_length"]
-
-                x2 = x0 - math.sin(orientation) * rat2 * props["axis_major_length"]
-                y2 = y0 - math.cos(orientation) * rat2 * props["axis_major_length"]
-
-                he = {"alpha": (y0i - y1) / (x0i - x1)}
-                he["beta"] = y1 - he["alpha"] * x1
-                he["len"] = props["axis_minor_length"]
-                he["label"] = "width"
-
-                ve = {"alpha": (y2i - y2) / (x2i - x2)}
-                ve["beta"] = y2 - ve["alpha"] * x2
-                ve["len"] = props["axis_major_length"]
-                ve["label"] = "length"
-
-                minr = int(props["bbox-0"])
-                minc = int(props["bbox-1"])
-                maxr = int(props["bbox-2"])
-                maxc = int(props["bbox-3"])
-
-                bx = (minc, maxc, maxc, minc, minc)
-                by = (minr, minr, maxr, maxr, minr)
-
-        eq = {"h": he, "v": ve}
-        xin = (eq["h"]["beta"] - eq["v"]["beta"]) / (
-            eq["v"]["alpha"] - eq["h"]["alpha"]
-        )
-        yin = xin * eq["h"]["alpha"] + eq["h"]["beta"]
-        eq["center"] = (xin, yin)
-        return eq
 
 
 class CrackAn:
@@ -462,7 +367,6 @@ class CrackAn:
             filename = self.imfile
             pass
 
-        print(filename)
         self.cracpy.get_mask(impath=filename, **self.cracpy_sett)
         self.cracpy.sep_masks()
         self.reg_img = self.cracpy.img
@@ -737,26 +641,18 @@ class CrackAn:
         else:
             impath = self.imfile
 
-        if (self.currimg_index != imgindex) | (self.cracpy.img_read == False):
-            self.cracpy.get_mask(impath)
+        self.cracpy.get_img(impath)
 
         img = self.cracpy.img
-        mask = self.cracpy.mask
 
         imgr = np.zeros([bbox[2] - bbox[0], bbox[3] - bbox[1], 3])
         imgr = img[bbox[0] : bbox[2], bbox[1] : bbox[3], :]
-
-        maskr = np.zeros([bbox[2] - bbox[0], bbox[3] - bbox[1]])
-        maskr = mask[bbox[0] : bbox[2], bbox[1] : bbox[3]]
-
         imgr = self.__rotate_image__(imgr, -self.specimens["angle"][specid])
-        maskr = self.__rotate_image__(maskr, -self.specimens["angle"][specid])
+        sbbox = self.specimens["sbbox"][specid]
+        imgr = imgr[sbbox[0] : sbbox[1], sbbox[2] : sbbox[3]]
 
-        sboxn = self.__subcrop__(maskr)
-        sbox_c = self.__check_bbox__(sboxn, imgr.shape, frame)
-
-        img_r = imgr[sbox_c[0] : sbox_c[1], sbox_c[2] : sbox_c[3], :]
-        mask_r = maskr[sbox_c[0] : sbox_c[1], sbox_c[2] : sbox_c[3]]
+        self.cracpy.get_mask(img=imgr)
+        mask_r = self.cracpy.mask
 
         if label is None:
             if self.regime == "folder":
@@ -774,11 +670,11 @@ class CrackAn:
                 prog = 0
 
         if anotate == True:
-            img_r = self.__anotate_img__(img_r, prog, label)
+            imgr = self.__anotate_img__(imgr, prog, label)
 
         sett = self.specimens["sett"][specid]
-        spec = SubSpec(img_r, self.cracpy.separate_mask(mask_r), sett)
-
+        spec = SubSpec(imgr, self.cracpy.separate_mask(mask_r), sett)
+        self.currimg_index = imgindex
         return spec
 
 
@@ -787,16 +683,157 @@ class CrackAnalyzer:
 
     def __init__(self, spec):
         self.spec = spec
+        self.reg_props = (
+            "area",
+            "centroid",
+            "orientation",
+            "axis_major_length",
+            "axis_minor_length",
+            "bbox",
+        )
+        self.metrics = dict()
+        self.pixel_mm_ratio = 1
+        self.min_number_of_crack_points = 20
 
-    def set_grapth(self, graph, min_number_of_crack_points: int = 20):
-        self.graph = graph
-        self.min_number_of_crack_points = min_number_of_crack_points
+    def node_analysis(self):
+        self.build_graph()
+        df_nodes, df_edges = self.analyze_cracks()
 
-    def graph_stats(self):
-        """Prints a basic graph statistics."""
-        print(f"directed: {self.graph.is_directed()}")
-        print(f"edges: {len(self.graph.edges)}")
-        print(f"nodes: {len(self.graph.nodes)}")
+        mean_angle_weighted = (df_edges["angle"] * df_edges["length"]).sum() / df_edges[
+            "length"
+        ].sum()
+        self.metrics["edge_per_node"] = df_nodes["num_edges"].mean()
+        self.metrics["crack_tot_length"] = df_edges["length"].sum()
+        self.metrics["average_angle"] = mean_angle_weighted
+
+    def get_equations(self):
+        """Get main equations for main and secondary axis of the specimen"""
+        # mask = np.array(cp.mask)
+        bw_mask = self.spec.masks["back"]
+        bw_mask = ~bw_mask
+
+        image = bw_mask.astype(np.uint8)
+        label_img = label(image)
+        # regions = regionprops(label_img)
+
+        props_mat = regionprops_table(label_img, properties=self.reg_props)
+        dfmat = pd.DataFrame(props_mat)
+        dfmat.sort_values(by=["area"], ascending=True)
+        dfmat = dfmat.reset_index()
+
+        #
+        dfii = pd.DataFrame()
+        for index, props in dfmat.iterrows():
+            # y0, x0 = props.centroid-0
+            if props["area"] > 2000:
+                y0 = props["centroid-0"]
+                x0 = props["centroid-1"]
+
+                orientation = props["orientation"]
+
+                rat1 = 0.43
+                x0i = x0 - math.cos(orientation) * rat1 * props["axis_minor_length"]
+                y0i = y0 + math.sin(orientation) * rat1 * props["axis_minor_length"]
+
+                x1 = x0 + math.cos(orientation) * rat1 * props["axis_minor_length"]
+                y1 = y0 - math.sin(orientation) * rat1 * props["axis_minor_length"]
+
+                rat2 = 0.43
+                x2i = x0 + math.sin(orientation) * rat2 * props["axis_major_length"]
+                y2i = y0 + math.cos(orientation) * rat2 * props["axis_major_length"]
+
+                x2 = x0 - math.sin(orientation) * rat2 * props["axis_major_length"]
+                y2 = y0 - math.cos(orientation) * rat2 * props["axis_major_length"]
+
+                he = {"alpha": (y0i - y1) / (x0i - x1)}
+                he["beta"] = y1 - he["alpha"] * x1
+                he["len"] = props["axis_minor_length"]
+                he["label"] = "width"
+
+                ve = {"alpha": (y2i - y2) / (x2i - x2)}
+                ve["beta"] = y2 - ve["alpha"] * x2
+                ve["len"] = props["axis_major_length"]
+                ve["label"] = "length"
+
+                minr = int(props["bbox-0"])
+                minc = int(props["bbox-1"])
+                maxr = int(props["bbox-2"])
+                maxc = int(props["bbox-3"])
+
+                bx = (minc, maxc, maxc, minc, minc)
+                by = (minr, minr, maxr, maxr, minr)
+
+        eq = {"h": he, "v": ve}
+        xin = (eq["h"]["beta"] - eq["v"]["beta"]) / (
+            eq["v"]["alpha"] - eq["h"]["alpha"]
+        )
+        yin = xin * eq["h"]["alpha"] + eq["h"]["beta"]
+        eq["center"] = (xin, yin)
+        return eq
+
+    def build_graph(self):
+        self.eq = self.get_equations()
+
+        # Filter only cracks mask
+        crack_bw = self.spec.masks["crack"]
+        crack_bw = crack_bw.astype(np.uint8)
+
+        # Determine the distance transform.
+        self.crack_skeleton = skeletonize(crack_bw, method="lee")
+        self.graph = sknw.build_sknw(self.crack_skeleton, multi=False)
+
+    def __meas_pores__(self):
+        image_pore = self.spec.masks["pore"]
+        label_img_pore = label(image_pore)
+
+        props_pore = regionprops_table(label_img_pore, properties=self.reg_props)
+        dfpores = pd.DataFrame(props_pore)
+
+        mask = dfpores["area"] < 10
+        dfpores = dfpores[~mask]
+
+        dfpores.sort_values(by=["area"], ascending=False)
+        dfpores = dfpores.reset_index()
+
+        points = np.array([dfpores["centroid-1"], dfpores["centroid-0"]])
+        points = np.rot90(points)
+        arr = pdist(points, metric="minkowski")
+
+        avgdist = arr.mean()
+        area = dfpores["area"].mean()
+
+        self.metrics["avg_pore_distance"] = avgdist
+        self.metrics["avg_pore_size"] = area
+
+    def basic_cnn_metrics(self):
+        kernel = np.ones((50, 50), np.uint8)
+        mat_bw = cv2.dilate(self.spec.masks["mat"], kernel, iterations=1)
+        mat_bw = cv2.erode(mat_bw, kernel)
+
+        crack_bw = cv2.bitwise_and(mat_bw, self.spec.masks["crack"])
+        pore_bw = cv2.bitwise_and(mat_bw, self.spec.masks["pore"])
+
+        total_area = self.spec.masks["back"].shape[0] * self.spec.masks["back"].shape[1]
+        back_area = self.spec.masks["back"].sum()
+        spec_area = total_area - back_area
+        crack_area = crack_bw.sum()
+        pore_area = pore_bw.sum()
+
+        mat_area = total_area - (crack_area + spec_area + pore_area)
+
+        crack_ratio = crack_area / spec_area
+
+        crack_length = self.crack_skeleton.sum()
+        crack_avg_thi = crack_area / crack_length
+
+        self.metrics["spec_area"] = (spec_area * self.pixel_mm_ratio,)
+        self.metrics["mat_area"] = (mat_area * self.pixel_mm_ratio,)
+        self.metrics["crack_ratio"] = (crack_ratio,)
+        self.metrics["crack_length"] = (crack_length * self.pixel_mm_ratio,)
+        self.metrics["crack_thickness"] = (crack_avg_thi * self.pixel_mm_ratio,)
+        self.metrics["pore_area"] = (pore_area * self.pixel_mm_ratio,)
+
+        self.__meas_pores__()
 
     def _analyze_edge(self, pts):
         length = 0
