@@ -14,7 +14,7 @@ import pandas as pd
 import math
 import numpy as np
 from matplotlib import pyplot as plt
-from crackest.cracks import CrackPlot, CrackPy
+from crackest import cracks
 from skimage.morphology import skeletonize
 import os
 import datetime
@@ -23,7 +23,7 @@ import sknw
 from scipy.spatial.distance import pdist
 
 
-class SubSpec(CrackPlot):
+class SubSpec(cracks.CrackPlot):
     def __init__(self, img, mask: dict, full_mask, sett):
         self.img = img
         self.mask = full_mask
