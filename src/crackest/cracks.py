@@ -295,7 +295,7 @@ class CrackPy(CrackPlot):
     def __init__(self, model=1):
         self.impath = ""
         self.cran = CrackAnalyzer(self)
-        self.plot_app = CrackPlot(self)
+        # self.plot_app = CrackPlot(self)
         self.is_cuda = torch.cuda.is_available()
 
         if torch.backends.mps.is_available():
@@ -353,15 +353,15 @@ class CrackPy(CrackPlot):
 
         pass
 
-    def preview(self, mask=None):
-        if self.has_mask == True:
-            if mask is not None:
-                self.plot_app.show_mask(mask)
-                return
+    # def preview(self, mask=None):
+    #     if self.has_mask == True:
+    #         if mask is not None:
+    #             self.plot_app.show_mask(mask)
+    #             return
 
-            self.plot_app.overlay()
-        else:
-            print("First extract mask")
+    #         self.plot_app.overlay()
+    #     else:
+    #         print("First extract mask")
 
     def get_img(self, impath):
         self.impath = impath
