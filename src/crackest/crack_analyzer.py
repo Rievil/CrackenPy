@@ -14,7 +14,7 @@ import pandas as pd
 import math
 import numpy as np
 from matplotlib import pyplot as plt
-from crackest import cracks as cr
+from crackest.cracks import CrackPlot, CrackPy
 from skimage.morphology import skeletonize
 import os
 import datetime
@@ -23,14 +23,13 @@ import sknw
 from scipy.spatial.distance import pdist
 
 
-class SubSpec:
-    def __init__(self, img, mask: dict, sett):
+class SubSpec(CrackPlot):
+    def __init__(self, img, mask: dict, full_mask, sett):
         self.img = img
+        self.mask = full_mask
         self.masks = mask  # dictionary
         self.sett = sett
         self.cran = CrackAnalyzer(self)
-
-        # self.get_countours()
         pass
 
     def get_metrics(self):
@@ -42,7 +41,7 @@ class SubSpec:
     def set_ratio(self, length: float = 160, width: float = 40, ratio: int = 1):
         self.length = length
         self.width = width
-        self.ratio = 1
+        self.cran.set_ratio(self.length, self.width)
 
         pass
 
@@ -84,11 +83,11 @@ class SubSpec:
 
 
 class CrackAn:
-    def __init__(self, cp=None):
+    def __init__(self, cp: CrackPy = None):
         if cp is not None:
             self.cracpy = cp
         else:
-            self.cracpy = cr.CrackPy(model=0)
+            self.cracpy = CrackPy(model=0)
 
         self.rotate = False
         self.img = []
@@ -673,7 +672,7 @@ class CrackAn:
             imgr = self.__anotate_img__(imgr, prog, label)
 
         sett = self.specimens["sett"][specid]
-        spec = SubSpec(imgr, self.cracpy.separate_mask(mask_r), sett)
+        spec = SubSpec(imgr, self.cracpy.separate_mask(mask_r), self.cracpy.mask, sett)
         self.currimg_index = imgindex
         return spec
 
@@ -712,7 +711,7 @@ class CrackAnalyzer:
         r = (~r).astype(np.uint8)
 
         total_area = r.shape[0] * r.shape[1]
-        area_trsh = int(total_area * 0.3)
+        area_trsh = int(total_area * 0.5)
 
         kernel = np.ones((20, 20), np.uint8)
         r = cv2.erode(r, kernel)
