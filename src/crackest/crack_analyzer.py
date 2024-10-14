@@ -681,8 +681,8 @@ class CrackAn:
 class CrackAnalyzer:
     """Analyze crack patterns in the crack graph."""
 
-    def __init__(self, spec):
-        self.spec = spec
+    def __init__(self, parent):
+        self.parent = parent
         self.reg_props = (
             "area",
             "centroid",
@@ -708,7 +708,7 @@ class CrackAnalyzer:
         self.metrics["average_angle"] = mean_angle_weighted
 
     def get_countours(self):
-        r = self.spec.masks["back"]
+        r = self.parent.masks["back"]
         r = (~r).astype(np.uint8)
 
         total_area = r.shape[0] * r.shape[1]
@@ -767,43 +767,10 @@ class CrackAnalyzer:
         print(self.pixel_mm_ratio)
         self.pixel_mm_ratio = np.mean([len_rat, wid_rat])
 
-        # self.mm_ratio_set = True
-
-        # if length is None:
-        #     self.length = 160
-        # else:
-        #     self.length = length
-
-        # if width is None:
-        #     self.width = 40
-        # else:
-        #     self.width = width
-
-        # mask = np.array(self.spec.masks["back"])
-        # bw_mask = mask[:, :] == 0
-        # bw_mask = ~bw_mask
-
-        # image = bw_mask.astype(np.uint8)
-        # label_img = label(image)
-
-        # props_mat = regionprops_table(label_img, properties=self.reg_props)
-
-        # self.orientation = props_mat["orientation"]
-
-        # self.dfmat = pd.DataFrame(props_mat)
-        # self.dfmat.sort_values(by=["area"], ascending=False, inplace=True)
-        # self.dfmat = self.dfmat.reset_index(drop=True)
-
-        # l_rat = self.length / self.dfmat["axis_major_length"][0]
-        # w_rat = self.width / self.dfmat["axis_minor_length"][0]
-
-        # m_rat = (l_rat + w_rat) / 2
-        # self.pixel_mm_ratio = m_rat
-
     def get_equations(self):
         """Get main equations for main and secondary axis of the specimen"""
         # mask = np.array(cp.mask)
-        bw_mask = self.spec.masks["back"]
+        bw_mask = self.parent.masks["back"]
         bw_mask = ~bw_mask
 
         image = bw_mask.astype(np.uint8)
@@ -869,7 +836,7 @@ class CrackAnalyzer:
         self.eq = self.get_equations()
 
         # Filter only cracks mask
-        crack_bw = self.spec.masks["crack"]
+        crack_bw = self.parent.masks["crack"]
         crack_bw = crack_bw.astype(np.uint8)
 
         # Determine the distance transform.
@@ -877,7 +844,7 @@ class CrackAnalyzer:
         self.graph = sknw.build_sknw(self.crack_skeleton, multi=False)
 
     def __meas_pores__(self):
-        image_pore = self.spec.masks["pore"]
+        image_pore = self.parent.masks["pore"]
         label_img_pore = label(image_pore)
 
         props_pore = regionprops_table(label_img_pore, properties=self.reg_props)
@@ -901,14 +868,16 @@ class CrackAnalyzer:
 
     def basic_cnn_metrics(self):
         kernel = np.ones((50, 50), np.uint8)
-        mat_bw = cv2.dilate(self.spec.masks["mat"], kernel, iterations=1)
+        mat_bw = cv2.dilate(self.parent.masks["mat"], kernel, iterations=1)
         mat_bw = cv2.erode(mat_bw, kernel)
 
-        crack_bw = cv2.bitwise_and(mat_bw, self.spec.masks["crack"])
-        pore_bw = cv2.bitwise_and(mat_bw, self.spec.masks["pore"])
+        crack_bw = cv2.bitwise_and(mat_bw, self.parent.masks["crack"])
+        pore_bw = cv2.bitwise_and(mat_bw, self.parent.masks["pore"])
 
-        total_area = self.spec.masks["back"].shape[0] * self.spec.masks["back"].shape[1]
-        back_area = self.spec.masks["back"].sum()
+        total_area = (
+            self.parent.masks["back"].shape[0] * self.parent.masks["back"].shape[1]
+        )
+        back_area = self.parent.masks["back"].sum()
         spec_area = total_area - back_area
         crack_area = crack_bw.sum()
         pore_area = pore_bw.sum()
@@ -1005,28 +974,3 @@ class CrackAnalyzer:
                 df_edges.loc[edge_id] = edge_params
 
         return df_nodes, df_edges
-
-    def plot_cracks(self, img_r: np.ndarray, selected_edge_ids: list | None = None):
-        """Plot image with nodes and edges (cracks). Specific cracks can be selected by edge_ids."""
-        fig, ax = plt.subplots(1, 1, figsize=(12, 4))
-        ax.imshow(img_r, cmap="gray")
-
-        for start_node_id, end_node_id in self.graph.edges():
-            edge_id = self.create_edge_id(start_node_id, end_node_id)
-            if selected_edge_ids is not None and edge_id not in selected_edge_ids:
-                continue
-
-            pts = self.graph.get_edge_data(start_node_id, end_node_id)["pts"]
-            if pts.shape[0] > self.min_number_of_crack_points:
-                start_end_pts = pts[[0, -1]]
-                # swapped X and Y coordinates?
-                yps = start_end_pts.take(0, axis=1)
-                xps = start_end_pts.take(1, axis=1)
-
-                ax.scatter(xps, yps, color="red")  # plot start/end nodes
-                ax.plot(pts[:, 1], pts[:, 0], "green")  # plot edge
-
-        ax.set_xlim([0, img_r.shape[1]])
-        ax.set_ylim([0, img_r.shape[0]])
-        ax.axis("off")
-        plt.show()

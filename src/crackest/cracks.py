@@ -403,7 +403,6 @@ class CrackPlot:
         fig, ax = plt.subplots(1, 1)
 
         masks = self.CP.sep_masks()
-        print(masks)
 
         if self.CP.crop == False:
             ax.imshow(self.CP.img)
@@ -493,6 +492,7 @@ class CrackPlot:
             plt.suptitle("Mean thickness {:.2f} pixels".format(arr_dist.mean()))
             cbar.ax.set_ylabel("Thickness [px]")
 
+        plt.tight_layout()
         plt.show()
         self.ax = ax
         self.fig = fig
