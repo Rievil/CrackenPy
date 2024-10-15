@@ -671,6 +671,23 @@ class CrackAn:
             imgr = self.__anotate_img__(imgr, prog, label)
 
         sett = self.specimens["sett"][specid]
-        spec = SubSpec(imgr, self.cracpy.separate_mask(mask_r), self.cracpy.mask, sett)
+
+        if frame > 0:
+            width, height, channels = imgr.shape
+            img_bigger = np.zeros([width + frame * 2, height + frame * 2, 3]).astype(
+                int
+            )
+            mask_bigger = np.zeros([width + frame * 2, height + frame * 2]).astype(int)
+
+            img_bigger[frame : width + frame, frame : height + frame, :] = imgr
+            mask_bigger[frame : width + frame, frame : height + frame] = mask_r
+            spec = SubSpec(
+                img_bigger, self.cracpy.separate_mask(mask_bigger), mask_bigger, sett
+            )
+        else:
+            spec = SubSpec(
+                imgr, self.cracpy.separate_mask(mask_r), self.cracpy.mask, sett
+            )
+
         self.currimg_index = imgindex
         return spec

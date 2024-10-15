@@ -171,7 +171,7 @@ class CrackPlot:
 
         ax.imshow(self.img)
 
-        if self.cran.mm_ratio_set == True:
+        if self.cran.pixel_mm_ratio == True:
             im = ax.imshow(dist * self.cran.pixel_mm_ratio, cmap="jet", alpha=0.8)
         else:
             im = ax.imshow(dist, cmap="jet", alpha=0.8)
@@ -187,7 +187,7 @@ class CrackPlot:
 
         ax.axis("off")
 
-        if self.cran.mm_ratio_set == True:
+        if self.cran.pixel_mm_ratio == True:
             arr_dist = dist[skel == 1] * 2 * self.cran.pixel_mm_ratio
             plt.suptitle("Mean thickness {:.2f} mm".format(arr_dist.mean()))
             cbar.ax.set_label("Thickness [mm]")
@@ -357,7 +357,7 @@ class CrackAnalyzer:
         if self.has_contour == False:
             self.get_countours()
 
-        mask = self.specimen_mask
+        mask = self.masks["spec"]
 
         w, h = mask.shape
 
@@ -373,7 +373,7 @@ class CrackAnalyzer:
 
         width_px = np.diff([vind[0], vind[-1]])
         wid_rat = width / width_px
-        print(self.pixel_mm_ratio)
+        print("Pixel to mm ratio: {:0.2f} mm/px".format(self.pixel_mm_ratio))
         self.pixel_mm_ratio = np.mean([len_rat, wid_rat])
 
     def get_equations(self):
