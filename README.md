@@ -50,7 +50,7 @@ cp.get_mask(imfile)
 cp.overlay()
 ```
 
-After instance initilaization, a pre-trained model is downloaded from HuggingFace repository, the model is stored in package folder for models. If the the NVIDIA GPU and CUDA toolkit is installed it will use cuda for segmentation. It can also use NPU cores on Apple Sillicon M1-M3 chips. The CrackenPy has basically two ways of use. Either on single image, where a specimen on dark background is placed, or on set of images. 
+After instance initilaization, a pre-trained model is downloaded from HuggingFace repository, the model is stored in package folder for models. If the the NVIDIA GPU and CUDA toolkit is installed it will use cuda for segmentation. It can also use MPS backend on Apple Sillicon M1-M3 chips. The CrackenPy has basically two ways of use. Either on single image, where a specimen on dark background is placed, or on set of images. 
 
 Single image
 =============================
@@ -58,7 +58,7 @@ The basic usage is t osegment the whole image, and all metrics and masks will re
 
 If there is multiple speicmens on 1 image, then the Cracken should be used.
 
-Multiple specimens
+Multiple images
 =============================
 In this scenario on the image multiple specimens are present. In this case it is nessessary which specimen should be assessed. For this a Cracken class is designed. At first it masks the whole image, and then using skimage library segment it into regions. The specimen mask is created out of inverse background mask, therefore it allows to have cracks which are going straight thgough the specimens, and the speicmen is still recognized. Otherwise, the segmentation would returned two different specimens, even tho they would be one body. It will create a set of operations neded to crop and rotate each specimen by its longer axis. The current state of the library takes into account the fact that the photos are taken perpendicular to the base on which the bodies under consideration are placed. Each specimen is given an ID, and allows to retrive the mask and image in stabilized state.
 
@@ -78,4 +78,19 @@ spec.overlay()
 ```
 ![](https://github.com/Rievil/CrackPy/blob/main/Examples/Plots/Multiple_registr.png)
 
+The same apply for the CrackAnalyzer, which is generating metrics out of image and its segmented mask. By this a development of metrics can be generated if the folder is given to CrackAn instead of single file. The segmentation in registr method is currently using the same model for recognizing how many specimens is on the image, as well for the segmnetation itself, so for the experiments it is recomended to keep the speicmens still on same spot. Otherwise it would need to segment whole image every time.
+
+Future plans
+=============================
+The current library is designed for laboratory enviroment, where every possible of binder can be placed (cement, geopolymers, alkali activated systems) and it should be able to segment cracks, matrix, pores and background. This is intented use, however the crack variety and vast brightness and texture allow to design in general accurate and reliable deep learning aplication for crack 
+segmentation in different type of mediums.
+
+-Segmentation using photogrammetry (basicly running CrackenPy on UV textures of generated 3D models)
+-Segmentation on videos (using les power demanding models to process bigger volumes of data)
+-Connecting the image with BIM metadata for structure surveing (for infrastructre isnepctions)
+
+
+Acknowledgment
+=============================
+This library was written under the Czech Science Foundation, grant number 22-02098S, project title „Experimental analysis of the shrinkage, creep and cracking mechanism of the materials based on the alkali-activated slag“.
 
