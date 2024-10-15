@@ -32,23 +32,50 @@ pip install git+https://crackpy_pip:github_pat_11ALTQFFA0Ong1tUOvJKpk_JkSDWdWnZV
 
 ```
 
-The usage of the package 
+The basic usage of the package 
 =============================
 
 ```Python
-from crackest import cracks as cr
+from crackest.cracks import CrackPy
  
 #%Model 1 optimized also for pores
 #Model 0 is optimized for fine cracks
-cp=cr.CrackPy(model=1) #
+cp=CrackPy(model=1) #
 
 #Read a file from examples
 imfile=r'Examples\Img\ID14_940_Image.png' 
-cp.GetMask(imfile)
+cp.get_mask(imfile)
 
 #Plot the example
-pc=cr.CrackPlot(cp)
-fig=pc.overlay()
+cp.overlay()
 ```
+
+After instance initilaization, a pre-trained model is downloaded from HuggingFace repository, the model is stored in package folder for models. If the the NVIDIA GPU and CUDA toolkit is installed it will use cuda for segmentation. It can also use NPU cores on Apple Sillicon M1-M3 chips. The CrackenPy has basically two ways of use. Either on single image, where a specimen on dark background is placed, or on set of images. 
+
+Single image
+=============================
+The basic usage is t osegment the whole image, and all metrics and masks will represent the whole image. This can be done, if the whole image is either filled with specimen, or if on the image is only the 1 specimen. In both cases all metrics connected to the matrix of binder, cracks and pores are assessed as 1 body / specimen.
+
+If there is multiple speicmens on 1 image, then the Cracken should be used.
+
+Multiple specimens
+=============================
+In this scenario on the image multiple specimens are present. In this case it is nessessary which specimen should be assessed. For this a Cracken class is designed. At first it masks the whole image, and then using skimage library segment it into regions. The specimen mask is created out of inverse background mask, therefore it allows to have cracks which are going straight thgough the specimens, and the speicmen is still recognized. Otherwise, the segmentation would returned two different specimens, even tho they would be one body. It will create a set of operations neded to crop and rotate each specimen by its longer axis. The current state of the library takes into account the fact that the photos are taken perpendicular to the base on which the bodies under consideration are placed. Each specimen is given an ID, and allows to retrive the mask and image in stabilized state.
+
+The library is build to assess change in time of specimens, which are placed on fixed position in scene and are not moved throught the whole image acquistion period. The original aim is to monitorthe long term changes on multiple specimens. After the first registr of specimens, the segmentation is then always done on croped and stabilized version of image filled with the sample with adjustable frame around it. This saves time and allows to osberve also volumetric changes (expansion, shrinkage). Both CrackPy and SubSpecies class inherit plotting methods from class CrackPlot, so it is possible to use same plotting functions for both cases.
+
+```Python
+from crackest.crack_analyzer import CrackAn
+
+ca=CrackAn()
+ca.input(file=r"Examples\Img\256_Image_29-01-2022 02-36-02.png")
+ca.registr()
+ca.preview()
+
+
+spec=ca.get_spec(specid=0,frame=50)
+spec.overlay()
+```
+
 
 
