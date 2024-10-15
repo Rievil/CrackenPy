@@ -45,8 +45,7 @@ class SubSpec(CrackPlot):
         pass
 
     def get_countours(self):
-        r = self.masks["back"]
-        r = (~r).astype(np.uint8)
+        r = self.masks["spec"]
 
         total_area = r.shape[0] * r.shape[1]
         area_trsh = int(total_area * 0.3)

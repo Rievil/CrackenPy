@@ -354,9 +354,6 @@ class CrackAnalyzer:
         self.has_contour = True
 
     def set_ratio(self, length=None, width=None):
-        if self.has_contour == False:
-            self.get_countours()
-
         mask = self.masks["spec"]
 
         w, h = mask.shape
