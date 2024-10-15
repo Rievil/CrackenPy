@@ -76,6 +76,6 @@ ca.preview()
 spec=ca.get_spec(specid=0,frame=50)
 spec.overlay()
 ```
-
+![](https://github.com/Rievil/CrackPy/blob/main/Examples/Plots/Multiple_registr.png)
 
 
