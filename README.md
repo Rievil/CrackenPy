@@ -85,9 +85,9 @@ Future plans
 The current library is designed for laboratory enviroment, where every possible of binder can be placed (cement, geopolymers, alkali activated systems) and it should be able to segment cracks, matrix, pores and background. This is intented use, however the crack variety and vast brightness and texture allow to design in general accurate and reliable deep learning aplication for crack 
 segmentation in different type of mediums.
 
--Segmentation using photogrammetry (basicly running CrackenPy on UV textures of generated 3D models)
--Segmentation on videos (using les power demanding models to process bigger volumes of data)
--Connecting the image with BIM metadata for structure surveing (for infrastructre isnepctions)
+- Segmentation using photogrammetry (basicly running CrackenPy on UV textures of generated 3D models)
+- Segmentation on videos (using les power demanding models to process bigger volumes of data)
+- Connecting the image with BIM metadata for structure surveing (for infrastructre isnepctions)
 
 
 Acknowledgment
