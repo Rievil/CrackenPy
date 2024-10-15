@@ -92,5 +92,5 @@ segmentation in different type of mediums.
 
 Acknowledgment
 =============================
-This library was written under the Czech Science Foundation, grant number 22-02098S, project title „Experimental analysis of the shrinkage, creep and cracking mechanism of the materials based on the alkali-activated slag“.
+This package was written under the Czech Science Foundation, grant number 22-02098S, project title „Experimental analysis of the shrinkage, creep and cracking mechanism of the materials based on the alkali-activated slag“.
 
