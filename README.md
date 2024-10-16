@@ -12,16 +12,18 @@ Features
 Image segmentation of given surface of the test specimen. The photo of the specimen must have minimum resolution of 416 $\times$ 416 pixels.
 The specimens should be placed on close-to-black background. The surface plane of the specimen should be parallel to the objective, to have minimal lens distortion. It is possible to give the main axis dimensions of the speicmens to calculate pixels to mm ratio.
 The CrackPy package is able do generate mask with classes "background", "matrix", "cracks" and "pores". On these classes the CrackPy package introduce couple of metrics, which are the intersection of practises in image processing regarding the evaluation of building materials in the current state of the art. The most basic metrics are:
-- Areas of each class
-- Crack ratio
-- Average pore size
-- Average pore distance
 
-The advance metrics of the cracks are:
-- Distance map
-- Skeleton of crack networks
-- Node network
-- Crack distribution
+- edge_per_node
+- crack_tot_length
+- average_angle
+- spec_area
+- mat_area
+- crack_ratio
+- crack_length
+- crack_thickness
+- pore_area
+- avg_pore_distance
+- avg_pore_size
 
 Tese metrics can be observed all at once, or just some of the metrics can be picked. If the time evolution of one speicmen is adressed the acquring of the metrics can be optimilized, to focus only for the metrics important for the given experiment.
 
@@ -62,7 +64,7 @@ Multiple images
 =============================
 In this scenario on the image multiple specimens are present. In this case it is nessessary which specimen should be assessed. For this a Cracken class is designed. At first it masks the whole image, and then using skimage library segment it into regions. The specimen mask is created out of inverse background mask, therefore it allows to have cracks which are going straight thgough the specimens, and the speicmen is still recognized. Otherwise, the segmentation would returned two different specimens, even tho they would be one body. It will create a set of operations neded to crop and rotate each specimen by its longer axis. The current state of the library takes into account the fact that the photos are taken perpendicular to the base on which the bodies under consideration are placed. Each specimen is given an ID, and allows to retrive the mask and image in stabilized state.
 
-The library is build to assess change in time of specimens, which are placed on fixed position in scene and are not moved throught the whole image acquistion period. The original aim is to monitorthe long term changes on multiple specimens. After the first registr of specimens, the segmentation is then always done on croped and stabilized version of image filled with the sample with adjustable frame around it. This saves time and allows to osberve also volumetric changes (expansion, shrinkage). Both CrackPy and SubSpecies class inherit plotting methods from class CrackPlot, so it is possible to use same plotting functions for both cases.
+The library is build to assess change in time of specimens, which are placed on fixed position in scene and are not moved throught the whole image acquistion period. The original aim is to monitorthe long term changes on multiple specimens. After the first registr of specimens, the segmentation is then always done on croped and stabilized version of image filled with the sample with adjustable frame around it. This saves time and allows to osberve also volumetric changes (expansion, shrinkage). 
 
 ```Python
 from crackest.crack_analyzer import CrackAn
@@ -72,11 +74,17 @@ ca.input(file=r"Examples\Img\256_Image_29-01-2022 02-36-02.png")
 ca.registr()
 ca.preview()
 
+```
+![](https://github.com/Rievil/CrackPy/blob/main/Examples/Plots/Multiple_registr.png)
 
+Both CrackPy and SubSpecies class inherit plotting methods from class CrackPlot, so it is possible to use same plotting functions for both cases.
+
+```Python
 spec=ca.get_spec(specid=0,frame=50)
 spec.overlay()
 ```
-![](https://github.com/Rievil/CrackPy/blob/main/Examples/Plots/Multiple_registr.png)
+![](https://github.com/Rievil/CrackPy/blob/main/Examples/Plots/Subspec.png)
+
 
 The same apply for the CrackAnalyzer, which is generating metrics out of image and its segmented mask. By this a development of metrics can be generated if the folder is given to CrackAn instead of single file. The segmentation in registr method is currently using the same model for recognizing how many specimens is on the image, as well for the segmnetation itself, so for the experiments it is recomended to keep the speicmens still on same spot. Otherwise it would need to segment whole image every time.
 
