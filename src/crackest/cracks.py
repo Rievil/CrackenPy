@@ -580,7 +580,7 @@ class CrackAnalyzer:
 
 
 class CrackPy(CrackPlot):
-    def __init__(self, model=1, model_path=None):
+    def __init__(self, model=1, model_path=None, model_type=None):
         self.impath = ""
         self.cran = CrackAnalyzer(self)
         # self.plot_app = CrackPlot(self)
@@ -599,19 +599,22 @@ class CrackPy(CrackPlot):
         self.encoder_depth = 5
         self.class_num = 5
 
-        self.model_type = "resnext101_32x8d"
-
-        DownloadModel(str(model))
-        self.default_model = pkg_resources.resource_filename(
-            "crackpy_models",
-            r"{:s}".format(ONLINE_CRACKPY_MODELS[str(model)]),
-        )
-        print(self.default_model)
+        if model_type is None:
+            self.model_type = "resnext101_32x8d"
+        else:
+            self.model_type = model_type
 
         if model_path is None:
+            DownloadModel(str(model))
+            self.default_model = pkg_resources.resource_filename(
+                "crackpy_models",
+                r"{:s}".format(ONLINE_CRACKPY_MODELS[str(model)]),
+            )
             self.model_path = "{}".format(self.default_model)
         else:
             self.model_path = model_path
+
+        print(self.default_model)
 
         self.model = smp.FPN(
             self.model_type,
