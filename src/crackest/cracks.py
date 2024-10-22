@@ -614,7 +614,7 @@ class CrackPy(CrackPlot):
         else:
             self.model_path = model_path
 
-        print(self.default_model)
+        print(self.model_type)
 
         self.model = smp.FPN(
             self.model_type,
