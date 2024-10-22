@@ -8,3 +8,4 @@ src/CrackPy.egg-info/PKG-INFO
 __pycache__/
 *.venv/
 Examples/.DS_Store
+Examples/.DS_Store
