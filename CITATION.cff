@@ -23,5 +23,5 @@ preferred-citation:
     given-names: Krc
   - family-names: Barbara
     given-names: Kucharczikova
-  doi: 10
+  doi: https://doi.org/10.5281/zenodo.13969747
   address: "Online"
