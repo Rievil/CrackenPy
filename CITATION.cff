@@ -1,9 +1,27 @@
-@software{CrackPy,
-  author = {Richard Dvorak, Matěj Prudil, Rostislav Krč, Vlastimil Bílek, Barbara Kucharczyková},
-  doi = {10.5281/zenodo.1234},
-  month = {8},
-  title = {{Image segmentation tool for semnatic segmentation of building material surfaces using deep learning}},
-  url = {https://github.com/Rievil/CrackPy},
-  version = {1.0.0},
-  year = {2024}
-}
+cff-version: "0.1.80"
+date-released: 2024-11
+message: "If you use this software, please cite it using these metadata."
+title: "CrackenPy: Image segmentation tool for semnatic segmentation of building material surfaces using deep learning"
+url: "https://github.com/Rievil/CrackenPy"
+authors: 
+  - family-names: Richard
+    given-names: Dvorak
+  - family-names: Vlastimil
+    given-names: Bilek
+  - family-names: Rostislav
+    given-names: Krc
+  - family-names: Barbara
+    given-names: Kucharczikova
+preferred-citation:
+  type: conference-paper
+  authors:
+  - family-names: Richard
+    given-names: Dvorak
+  - family-names: Vlastimil
+    given-names: Bilek
+  - family-names: Rostislav
+    given-names: Krc
+  - family-names: Barbara
+    given-names: Kucharczikova
+  doi: 10
+  address: "Online"
