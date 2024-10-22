@@ -1,27 +1,27 @@
 cff-version: "1.2.0"
-date-released: 2024-10
+date-released: 2024-10-01
 message: "If you use this software, please cite it using these metadata."
-title: "CrackenPy: Image segmentation tool for semnatic segmentation of building material surfaces using deep learning"
+title: "CrackenPy: Image segmentation tool for semantic segmentation of building material surfaces using deep learning"
 url: "https://github.com/Rievil/CrackenPy"
 authors: 
-  - family-names: Richard
-    given-names: Dvorak
-  - family-names: Vlastimil
-    given-names: Bilek
-  - family-names: Rostislav
-    given-names: Krc
-  - family-names: Barbara
-    given-names: Kucharczikova
+  - family-names: Dvorak
+    given-names: Richard
+  - family-names: Bilek
+    given-names: Vlastimil
+  - family-names: Krc
+    given-names: Rostislav
+  - family-names: Kucharczikova
+    given-names: Barbara
 preferred-citation:
   type: conference-paper
   authors:
-  - family-names: Richard
-    given-names: Dvorak
-  - family-names: Vlastimil
-    given-names: Bilek
-  - family-names: Rostislav
-    given-names: Krc
-  - family-names: Barbara
-    given-names: Kucharczikova
+  - family-names: Dvorak
+    given-names: Richard
+  - family-names: Bilek
+    given-names: Vlastimil
+  - family-names: Krc
+    given-names: Rostislav
+  - family-names: Kucharczikova
+    given-names: Barbara
   doi: 10.5281/zenodo.13969747
   address: "Online"
