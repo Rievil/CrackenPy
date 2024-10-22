@@ -43,43 +43,36 @@ import numpy as np
 from matplotlib.colors import ListedColormap
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from matplotlib.patches import Rectangle
+from huggingface_hub import hf_hub_download
 
 
 os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
 
 ONLINE_CRACKPY_MODELS = {
-    "0": [
-        "resnext101_32x8d_N387_C5_30102023.pt",
-        "1AtTrLmDf7kmlfEbGEJ5e43_aa0SnGntL",
-    ],
-    "1": [
-        "resnext101_32x8d_N387_C5_310124.pt",
-        "1qmAv34aIPRLCRGEG3gwbbsYQTYmZpnp5",
-    ],
+    "0": "model1.pt",
+    "1": "model2.pt",
 }
 
 
 def DownloadModel(key):
     model = pkg_resources.resource_listdir("crackpy_models", "")
     online_models = ONLINE_CRACKPY_MODELS
-    count = model.count(online_models[key][0])
+    count = model.count(online_models[key])
 
     if count == 0:
         module_path = crackpy_models.__file__
         tar_folder = os.path.dirname(module_path)
 
-        if tar_folder.count("/") > 0:
-            out_file = r"{:s}/{:s}".format(tar_folder, online_models[key][0])
-        else:
-            out_file = r"{:s}\{:s}".format(tar_folder, online_models[key][0])
-
-        url_id = online_models[key][1]
         print(
             "Downloading deep learing model '{:s}' for module crackpy".format(
-                online_models[key][0].replace(".pt", "")
+                online_models[key].replace(".pt", "")
             )
         )
-        gdown.download(id=url_id, output=out_file, quiet=False)
+        hf_hub_download(
+            repo_id="rievil/crackenpy", filename="model1.pt", local_dir=tar_folder
+        )
+        print("... done downloading")
+        # gdown.download(id=url_id, output=out_file, quiet=False)
 
 
 def UpdateModels():
@@ -88,7 +81,7 @@ def UpdateModels():
 
     count_d = 0
     for key in online_models:
-        count = model.count(online_models[key][0])
+        count = model.count(online_models[key])
         if count == 0:
             count_d += 1
             DownloadModel(key)
@@ -585,7 +578,7 @@ class CrackAnalyzer:
 
 
 class CrackPy(CrackPlot):
-    def __init__(self, model=1):
+    def __init__(self, model=1, model_path=None):
         self.impath = ""
         self.cran = CrackAnalyzer(self)
         # self.plot_app = CrackPlot(self)
@@ -609,10 +602,14 @@ class CrackPy(CrackPlot):
         DownloadModel(str(model))
         self.default_model = pkg_resources.resource_filename(
             "crackpy_models",
-            r"{:s}".format(ONLINE_CRACKPY_MODELS[str(model)][0]),
+            r"{:s}".format(ONLINE_CRACKPY_MODELS[str(model)]),
         )
+        print(self.default_model)
 
-        self.model_path = "{}".format(self.default_model)
+        if model_path is None:
+            self.model_path = "{}".format(self.default_model)
+        else:
+            self.model_path = model_path
 
         self.model = smp.FPN(
             self.model_type,

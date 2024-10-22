@@ -11,7 +11,10 @@ from setuptools import Extension, setup, find_packages
 
 setup(
     name="crackpy",
-    version="0.1.61",
+    version="0.1.62",
+    description="Library for detection of cracks on test specimens of building materials",
+    author="Richard Dvorak, Vlastimil Bilek, Barbara Kucharczikova, Rostislav Krc",
+    author_email="richard.dvorak@vutbr.cz",
     packages=find_packages(where="src"),
     install_requires=[
         "torch>=2.0.0",
