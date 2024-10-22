@@ -11,7 +11,7 @@ from setuptools import Extension, setup, find_packages
 
 setup(
     name="crackpy",
-    version="0.1.66",
+    version="0.1.67",
     description="Library for detection of cracks on test specimens of building materials",
     author="Richard Dvorak, Vlastimil Bilek, Barbara Kucharczikova, Rostislav Krc",
     author_email="richard.dvorak@vutbr.cz",
@@ -19,7 +19,7 @@ setup(
     install_requires=[
         "torch>=2.0.0",
         "pandas>=0.23.3",
-        "numpy>=2.0.0",
+        "numpy>=1.26.0",
         "matplotlib>=2.2.0",
         "gdown>=5.0.0",
         "sknw>=0.15",
