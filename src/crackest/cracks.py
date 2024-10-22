@@ -69,7 +69,9 @@ def DownloadModel(key):
             )
         )
         hf_hub_download(
-            repo_id="rievil/crackenpy", filename="model1.pt", local_dir=tar_folder
+            repo_id="rievil/crackenpy",
+            filename=online_models[key],
+            local_dir=tar_folder,
         )
         print("... done downloading")
         # gdown.download(id=url_id, output=out_file, quiet=False)
