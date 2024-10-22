@@ -94,7 +94,7 @@ The current library is designed for laboratory enviroment, where every possible 
 segmentation in different type of mediums.
 
 - Segmentation using photogrammetry (basicly running CrackenPy on UV textures of generated 3D models)
-- Segmentation on videos (using les power demanding models to process bigger volumes of data)
+- Segmentation on videos (using less power demanding models to process bigger volumes of data)
 - Connecting the image with BIM metadata for structure surveing (for infrastructre isnepctions)
 
 
@@ -102,3 +102,14 @@ Acknowledgment
 =============================
 This package was written under the Czech Science Foundation, grant number 22-02098S, project title „Experimental analysis of the shrinkage, creep and cracking mechanism of the materials based on the alkali-activated slag“.
 
+Please cite our work
+========================
+
+@misc {richard_dvorak_2024,
+	author       = { {Richard Dvorak} },
+	title        = { crackenpy (Revision 04ed02c) },
+	year         = 2024,
+	url          = { https://huggingface.co/rievil/crackenpy },
+	doi          = { 10.57967/hf/3295 },
+	publisher    = { Hugging Face }
+}
