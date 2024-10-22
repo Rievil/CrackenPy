@@ -12,16 +12,5 @@ authors:
     given-names: Rostislav
   - family-names: Kucharczikova
     given-names: Barbara
-preferred-citation:
-  type: conference-paper
-  authors:
-  - family-names: Dvorak
-    given-names: Richard
-  - family-names: Bilek
-    given-names: Vlastimil
-  - family-names: Krc
-    given-names: Rostislav
-  - family-names: Kucharczikova
-    given-names: Barbara
-  doi: 10.5281/zenodo.13969747
-  address: "Online"
+doi: 10.5281/zenodo.13969747
+address: "Online"
