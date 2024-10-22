@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: pypi
-      url: https://pypi.org/p/crackpy
+      url: https://pypi.org/p/crackenpy
     permissions:
       id-token: write
     steps:
