@@ -22,8 +22,6 @@ import os
 from tqdm.notebook import tqdm
 
 
-import segmentation_models_pytorch as smp
-
 # from wand.image import Image as WI
 from skimage.morphology import medial_axis, skeletonize
 
@@ -43,8 +41,7 @@ import numpy as np
 from matplotlib.colors import ListedColormap
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from matplotlib.patches import Rectangle
-from huggingface_hub import hf_hub_download
-
+import segmentation_models_pytorch as smp
 
 os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
 
@@ -55,6 +52,8 @@ ONLINE_CRACKPY_MODELS = {
 
 
 def DownloadModel(key):
+    from huggingface_hub import hf_hub_download
+
     model = pkg_resources.resource_listdir("crackpy_models", "")
     online_models = ONLINE_CRACKPY_MODELS
     count = model.count(online_models[key])

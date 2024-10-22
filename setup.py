@@ -11,7 +11,7 @@ from setuptools import Extension, setup, find_packages
 
 setup(
     name="crackpy",
-    version="0.1.65",
+    version="0.1.66",
     description="Library for detection of cracks on test specimens of building materials",
     author="Richard Dvorak, Vlastimil Bilek, Barbara Kucharczikova, Rostislav Krc",
     author_email="richard.dvorak@vutbr.cz",
