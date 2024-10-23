@@ -7,7 +7,6 @@ This package is dedicated to segment cracks, matrix and pores in testing specime
 [![DOI](https://zenodo.org/badge/734478397.svg)](https://doi.org/10.5281/zenodo.13969747)
 
 _Please cite our research paper using the sidebar button when using CrackPy in your research project._
-> Dvorak, R., xxx https://doi.org/10.xxxx
 
 Features
 ============================
@@ -106,7 +105,7 @@ This package was written under the Czech Science Foundation, grant number 22-020
 
 Please cite our work
 ========================
-
+```latex
 @misc {richard_dvorak_2024,
 	author       = { {Richard Dvorak} },
 	title        = { crackenpy (Revision 04ed02c) },
@@ -115,3 +114,5 @@ Please cite our work
 	doi          = { 10.57967/hf/3295 },
 	publisher    = { Hugging Face }
 }
+
+```
