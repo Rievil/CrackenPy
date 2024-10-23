@@ -30,6 +30,7 @@ Tese metrics can be observed all at once, or just some of the metrics can be pic
 
 The instalation of the package (private package)
 ============================
+The package works optimal with NVIDIA GPU together with installed [CUDA](https://developer.nvidia.com/cuda-toolkit) 11.8 or newer. It was also tested on mac OS using MPS backend. The package was tested in Google Colab.
 ```
 pip install crackenpy
 
