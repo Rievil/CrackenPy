@@ -116,4 +116,12 @@ Please cite our work
 	publisher    = { Hugging Face }
 }
 
+@software{Dvorak_CrackenPy_Image_segmentation_2024,
+author = {Dvorak, Richard and Bilek, Vlastimil and Krc, Rostislav and Kucharczykova, Barbara},
+doi = {10.5281/zenodo.13969747},
+month = oct,
+title = {{CrackenPy: Image segmentation tool for semantic segmentation of building material surfaces using deep learning}},
+url = {https://github.com/Rievil/CrackenPy},
+year = {2024}
+}
 ```
