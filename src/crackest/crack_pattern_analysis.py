@@ -32,9 +32,13 @@ class CrackAnalyzer:
         self.build_graph()
         df_nodes, df_edges = self.analyze_cracks()
 
-        mean_angle_weighted = (df_edges["angle"] * df_edges["length"]).sum() / df_edges[
-            "length"
-        ].sum()
+        if df_edges["length"].sum() == 0:
+            mean_angle_weighted = 0
+        else:
+            mean_angle_weighted = (
+                df_edges["angle"] * df_edges["length"]
+            ).sum() / df_edges["length"].sum()
+
         self.metrics["edge_per_node"] = df_nodes["num_edges"].mean()
         self.metrics["crack_tot_length"] = df_edges["length"].sum()
         self.metrics["average_angle"] = mean_angle_weighted
