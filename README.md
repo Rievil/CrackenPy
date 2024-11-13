@@ -6,6 +6,10 @@ This package is dedicated to segment cracks, matrix and pores in testing specime
 
 [![DOI](https://zenodo.org/badge/734478397.svg)](https://doi.org/10.5281/zenodo.13969747)
 
+- [Library](https://github.com/Rievil/CrackenPy)
+- [Model](https://huggingface.co/rievil/crackenpy)
+- [Dataset](https://huggingface.co/datasets/rievil/crackenpy_dataset)
+
 _Please cite our research paper using the sidebar button when using CrackPy in your research project._
 
 Features
