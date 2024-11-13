@@ -124,4 +124,13 @@ Please cite our work
 	url          = {https://github.com/Rievil/CrackenPy},
 	year         = {2024}
 }
+
+@misc {richard_dvorak_2024,
+	author       = { {Richard Dvorak} },
+	title        = { crackenpy_dataset (Revision ce5c857) },
+	year         = 2024,
+	url          = { https://huggingface.co/datasets/rievil/crackenpy_dataset },
+	doi          = { 10.57967/hf/3496 },
+	publisher    = { Hugging Face }
+}
 ```
