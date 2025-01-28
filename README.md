@@ -12,6 +12,8 @@ This package is dedicated to segment cracks, matrix and pores in testing specime
 
 _Please cite our research paper using the sidebar button when using CrackPy in your research project._
 
+The videos documenting the source training images are represented via videos on youtube playlist [Cracks in alkali activated binders](https://youtube.com/playlist?list=PLE4UJv3O5jqNp2Oaqw1vnGiE2zu80q-Xe&si=aJCcwjeDd9LQq3NA).
+
 Features
 ============================
 Image segmentation of given surface of the test specimen. The photo of the specimen must have minimum resolution of 416 $\times$ 416 pixels.
