@@ -45,7 +45,7 @@ class CrackPy(CrackPlot):
         self.class_num = 5
 
         if model_type is None:
-            self.model_type = "resnext101_32x8d"
+            self.model_type = "resnext50_32x4d"
         else:
             self.model_type = model_type
 
