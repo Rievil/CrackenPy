@@ -11,7 +11,7 @@ from setuptools import Extension, setup, find_packages
 
 setup(
     name="crackenpy",
-    version="0.1.69",
+    version="0.1.7",
     description="Library for detection of cracks on test specimens of building materials",
     author="Richard Dvorak, Vlastimil Bilek, Barbara Kucharczikova, Rostislav Krc",
     author_email="richard.dvorak@vutbr.cz",
