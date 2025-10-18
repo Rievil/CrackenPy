@@ -6,7 +6,13 @@ This package is dedicated to segment cracks, matrix and pores in testing specime
 
 [![DOI](https://zenodo.org/badge/734478397.svg)](https://doi.org/10.5281/zenodo.13969747)
 
+- [Library](https://github.com/Rievil/CrackenPy)
+- [Model](https://huggingface.co/rievil/crackenpy)
+- [Dataset](https://huggingface.co/datasets/rievil/crackenpy_dataset)
+
 _Please cite our research paper using the sidebar button when using CrackPy in your research project._
+
+The videos documenting the source training images are represented via videos on youtube playlist [Cracks in alkali activated binders](https://youtube.com/playlist?list=PLE4UJv3O5jqNp2Oaqw1vnGiE2zu80q-Xe&si=aJCcwjeDd9LQq3NA).
 
 Features
 ============================
@@ -123,5 +129,14 @@ Please cite our work
 	title        = {{CrackenPy: Image segmentation tool for semantic segmentation of building material surfaces using deep learning}},
 	url          = {https://github.com/Rievil/CrackenPy},
 	year         = {2024}
+}
+
+@misc {richard_dvorak_2024,
+	author       = { {Richard Dvorak} },
+	title        = { crackenpy_dataset (Revision ce5c857) },
+	year         = 2024,
+	url          = { https://huggingface.co/datasets/rievil/crackenpy_dataset },
+	doi          = { 10.57967/hf/3496 },
+	publisher    = { Hugging Face }
 }
 ```

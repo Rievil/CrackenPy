@@ -129,7 +129,7 @@ tomli==2.0.2
 tomlkit==0.13.2
 torch==2.4.1
 torchvision==0.19.1
-tornado==6.4.1
+tornado>=6.4.2
 tqdm==4.66.5
 tqdm-loggable==0.2
 traitlets==5.14.3
