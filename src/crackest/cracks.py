@@ -81,6 +81,7 @@ class CrackPy(CrackPlot):
 
         self.pred_mean = [0.485, 0.456, 0.406]
         self.pred_std = [0.229, 0.224, 0.225]
+
         self.patch_size = 416
         self.crop = False
         self.img_read = False
@@ -90,17 +91,6 @@ class CrackPy(CrackPlot):
         self.has_mask = False
         self.gamma_correction = 1
         self.black_level = 1
-
-
-    # def preview(self, mask=None):
-    #     if self.has_mask == True:
-    #         if mask is not None:
-    #             self.plot_app.show_mask(mask)
-    #             return
-
-    #         self.plot_app.overlay()
-    #     else:
-    #         print("First extract mask")
 
     def get_img(self, impath):
         self.impath = impath
@@ -198,7 +188,7 @@ class CrackPy(CrackPlot):
         self.iterate_mask()
 
     def set_ratio(self, length=None, width=None):
-        self.cran.set_ratio(length=None, width=None)
+        self.cran.set_ratio(length=length, width=width)
 
     def sep_masks(self):
         self.masks = self.separate_mask(self.mask)
