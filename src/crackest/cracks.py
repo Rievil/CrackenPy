@@ -1,13 +1,4 @@
 # -*- coding: utf-8 -*-
-"""
-Created on Mon Nov 20 18:20:30 2023
-
-#To do:
-#self.GetMask -> Add reading image from url form web
-
-
-@author: dvorr
-"""
 import cv2
 import numpy as np
 import os
@@ -25,10 +16,17 @@ os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
 
 
 class CrackPy(CrackPlot):
-    def __init__(self, model=1, model_path=None, model_type=None):
+    def __init__(
+        self,
+        model=1,
+        model_path=None,
+        model_type=None,
+        class_num=5,
+        encoder_depth=5,
+        img_channels=3,
+    ):
         self.impath = ""
         self.cran = CrackAnalyzer(self)
-        # self.plot_app = CrackPlot(self)
         self.is_cuda = torch.cuda.is_available()
 
         if torch.backends.mps.is_available():
@@ -40,9 +38,20 @@ class CrackPy(CrackPlot):
 
         self.device = torch.device(self.device_type)
 
-        self.img_channels = 3
-        self.encoder_depth = 5
-        self.class_num = 5
+        if img_channels is not None:
+            self.img_channels = img_channels
+        else:
+            self.img_channels = 3
+
+        if encoder_depth is not None:
+            self.encoder_depth = encoder_depth
+        else:
+            self.encoder_depth = 5
+
+        if class_num is not None:
+            self.class_num = class_num
+        else:
+            self.class_num = 5
 
         if model_type is None:
             self.model_type = "resnext50_32x4d"
