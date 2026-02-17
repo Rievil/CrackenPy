@@ -6,6 +6,7 @@ from PIL import Image as PImage
 import pkg_resources
 import segmentation_models_pytorch as smp
 import torch
+from torchvision import transforms as T
 
 from crackest.crack_pattern_analysis import CrackAnalyzer
 from crackest.crack_plot import CrackPlot
@@ -68,19 +69,6 @@ class CrackPy(CrackPlot):
 
         self.pred_mean = [0.485, 0.456, 0.406]
         self.pred_std = [0.229, 0.224, 0.225]
-        self.batch_size = 16
-        self.use_amp = self.device_type == "cuda"
-        self.norm_mean = torch.tensor(self.pred_mean, dtype=torch.float32).view(
-            1, len(self.pred_mean), 1, 1
-        )
-        self.norm_std = torch.tensor(self.pred_std, dtype=torch.float32).view(
-            1, len(self.pred_std), 1, 1
-        )
-        self.norm_mean = self.norm_mean.to(self.device)
-        self.norm_std = self.norm_std.to(self.device)
-
-        if self.is_cuda == True:
-            torch.backends.cudnn.benchmark = True
 
         self.patch_size = 416
         self.crop = False
@@ -147,7 +135,7 @@ class CrackPy(CrackPlot):
             if self.has_mask == True:
                 self.mask = self.mask[dim[0] : dim[1], dim[2] : dim[3]]
 
-    def iterate_mask(self, batch_size=None):
+    def iterate_mask(self):
         if self.crop == False:
             imgo = self.img
         else:
@@ -161,40 +149,37 @@ class CrackPy(CrackPlot):
 
         sz = imgo.shape
         step_size = self.patch_size
-        if batch_size is None:
-            batch_size = self.batch_size
-        else:
-            batch_size = max(1, int(batch_size))
-            self.batch_size = batch_size
+
+        xcount = sz[0] / step_size
+        xcount_r = np.ceil(xcount)
+        ycount = sz[1] / step_size
+        ycount_r = np.ceil(ycount)
 
         blank_image = np.zeros((int(sz[0]), int(sz[1])), np.uint8)
 
-        xstarts = self.__tile_starts__(sz[0], step_size)
-        ystarts = self.__tile_starts__(sz[1], step_size)
+        width = step_size
+        height = width
 
-        batch_tiles = []
-        batch_coords = []
+        for xi in range(0, int(xcount_r)):
+            for yi in range(0, int(ycount_r)):
+                if xi < xcount - 1:
+                    xstart = width * xi
+                    xstop = xstart + width
+                else:
+                    xstop = sz[0]
+                    xstart = xstop - step_size
 
-        for xstart in xstarts:
-            xstop = min(xstart + step_size, sz[0])
-            for ystart in ystarts:
-                ystop = min(ystart + step_size, sz[1])
-                batch_tiles.append(imgo[xstart:xstop, ystart:ystop])
-                batch_coords.append((xstart, xstop, ystart, ystop))
+                if yi < ycount - 1:
+                    ystart = height * yi
+                    ystop = ystart + height
+                else:
+                    ystop = sz[1]
+                    ystart = ystop - step_size
 
-                if len(batch_tiles) == batch_size:
-                    batch_masks = self.__predict_batch__(batch_tiles)
-                    for mask, coord in zip(batch_masks, batch_coords):
-                        xs, xe, ys, ye = coord
-                        blank_image[xs:xe, ys:ye] = mask
-                    batch_tiles = []
-                    batch_coords = []
+                cropped_image = imgo[xstart:xstop, ystart:ystop]
 
-        if len(batch_tiles) > 0:
-            batch_masks = self.__predict_batch__(batch_tiles)
-            for mask, coord in zip(batch_masks, batch_coords):
-                xs, xe, ys, ye = coord
-                blank_image[xs:xe, ys:ye] = mask
+                mask = self.__predict_image__(cropped_image)
+                blank_image[xstart:xstop, ystart:ystop] = mask
 
         self.mask = blank_image
         self.has_mask = True
@@ -210,9 +195,7 @@ class CrackPy(CrackPlot):
         self.mask = self.__predict_image__(self.img)
         return self.mask
 
-    def get_mask(
-        self, impath=None, img=None, gamma=None, black_level=None, batch_size=None
-    ):
+    def get_mask(self, impath=None, img=None, gamma=None, black_level=None):
         self.mm_ratio_set = False
         if impath is not None:
             self.impath = impath
@@ -228,7 +211,7 @@ class CrackPy(CrackPlot):
         self.gamma_correction = gamma
         self.black_level = black_level
 
-        self.iterate_mask(batch_size=batch_size)
+        self.iterate_mask()
 
     def set_ratio(self, length=None, width=None):
         self.cran.set_ratio(length=length, width=width)
@@ -258,7 +241,6 @@ class CrackPy(CrackPlot):
                     weights_only=True,
                 )
             )
-        self.model.to(self.device)
         self.model.eval()
 
     def __read_img__(self):
@@ -297,63 +279,20 @@ class CrackPy(CrackPlot):
         return cv2.LUT(img, table)
 
     def __del__(self):
-        if self.is_cuda == True:
-            torch.cuda.empty_cache()
+        torch.cuda.empty_cache()
 
     def __predict_image__(self, image):
-        mask = self.__predict_batch__([image])[0]
-        return torch.from_numpy(mask.astype(np.int64))
-
-    def __tile_starts__(self, dim_size, step_size):
-        if dim_size <= step_size:
-            return [0]
-
-        starts = list(range(0, dim_size - step_size + 1, step_size))
-        last_start = dim_size - step_size
-        if starts[-1] != last_start:
-            starts.append(last_start)
-        return starts
-
-    def __prepare_image__(self, image):
-        if isinstance(image, PImage.Image):
-            image = np.asarray(image)
-        elif torch.is_tensor(image):
-            image = image.detach().cpu().numpy()
-        else:
-            image = np.asarray(image)
-
-        if image.ndim == 2:
-            image = np.expand_dims(image, axis=-1)
-
-        return image
-
-    def __predict_batch__(self, images):
         self.model.eval()
-
-        if isinstance(images, np.ndarray) and images.ndim == 4:
-            image_batch = images
-        else:
-            prepared = [self.__prepare_image__(image) for image in images]
-            image_batch = np.stack(prepared, axis=0)
-
-        image_batch = np.ascontiguousarray(image_batch)
-        image_batch = torch.from_numpy(image_batch).permute(0, 3, 1, 2).float()
-        image_batch = image_batch.div(255.0)
-        image_batch = image_batch.to(self.device, non_blocking=self.is_cuda)
-
-        if image_batch.shape[1] == self.norm_mean.shape[1]:
-            image_batch = (image_batch - self.norm_mean) / self.norm_std
-
-        with torch.inference_mode():
-            if self.use_amp == True:
-                with torch.autocast(device_type="cuda", dtype=torch.float16):
-                    output = self.model(image_batch)
-            else:
-                output = self.model(image_batch)
+        t = T.Compose([T.ToTensor(), T.Normalize(self.pred_mean, self.pred_std)])
+        image = t(image)
+        self.model.to(self.device)
+        image = image.to(self.device)
+        with torch.no_grad():
+            image = image.unsqueeze(0)
+            output = self.model(image)
 
             masked = torch.argmax(output, dim=1)
-            masked = masked.to(dtype=torch.uint8).cpu().numpy()
-
+            masked = masked.cpu().squeeze(0)
         return masked
 
     def separate_mask(self, mask):
