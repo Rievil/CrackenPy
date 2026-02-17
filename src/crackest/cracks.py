@@ -245,8 +245,6 @@ class CrackPy(CrackPlot):
         self.sep_masks()
         self.cran.node_analysis()
         self.cran.basic_cnn_metrics()
-        if self.mm_ratio_set == True:
-            self.cran.metrics["ratio_mm2px"]
         return self.cran.metrics.copy()
 
     def __loadmodel__(self):
