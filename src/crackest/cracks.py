@@ -19,6 +19,7 @@ class CrackPy(CrackPlot):
     def __init__(
         self,
         model=1,
+        model_dict=None,
         model_path=None,
         model_type=None,
         class_num=5,
@@ -57,29 +58,7 @@ class CrackPy(CrackPlot):
             self.model_type = "resnext50_32x4d"
         else:
             self.model_type = model_type
-
-        if model_path is None:
-            download_model(str(model))
-            self.default_model = pkg_resources.resource_filename(
-                "crackpy_models",
-                r"{:s}".format(ONLINE_CRACKPY_MODELS[str(model)]),
-            )
-            self.model_path = "{}".format(self.default_model)
-        else:
-            self.model_path = model_path
-
         print(self.model_type)
-
-        self.model = smp.FPN(
-            self.model_type,
-            in_channels=self.img_channels,
-            classes=self.class_num,
-            activation=None,
-            encoder_depth=self.encoder_depth,
-        )
-
-        # self.model_path=
-        self.__loadmodel__()
         self.reg_props = (
             "area",
             "centroid",
@@ -100,6 +79,44 @@ class CrackPy(CrackPlot):
         self.has_mask = False
         self.gamma_correction = 1
         self.black_level = 1
+
+        if model_dict is not None:
+            # ===== Loading from custom model dict =====
+            self.model_dict = model_dict
+            self.state_dict = model_dict["state_dict"]
+            self.config = model_dict["config"]
+            self.model = smp.FPN(
+                self.config["encoder_name"],
+                in_channels=self.config["in_channels"],
+                classes=self.config["num_classes"],
+                activation=None,
+                encoder_depth=self.encoder_depth,
+            )
+            self.model.load_state_dict(self.state_dict)
+            self.model.to(self.device)
+            self.model.eval()
+            return
+
+        else:
+            # ===== Loading from web by default =====
+            if model_path is None:
+                download_model(str(model))
+                self.default_model = pkg_resources.resource_filename(
+                    "crackpy_models",
+                    r"{:s}".format(ONLINE_CRACKPY_MODELS[str(model)]),
+                )
+                self.model_path = "{}".format(self.default_model)
+            else:
+                self.model_path = model_path
+
+            self.model = smp.FPN(
+                self.model_type,
+                in_channels=self.img_channels,
+                classes=self.class_num,
+                activation=None,
+                encoder_depth=self.encoder_depth,
+            )
+            self.__loadmodel__()
 
     def get_img(self, impath):
         self.impath = impath
