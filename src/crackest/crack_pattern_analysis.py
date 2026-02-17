@@ -230,6 +230,11 @@ class CrackAnalyzer:
         self.metrics["crack_thickness"] = (crack_avg_thi * self.pixel_mm_ratio,)
         self.metrics["pore_area"] = (pore_area * self.pixel_mm_ratio,)
 
+        if self.pixel_mm_ratio_set:
+            self.metrics["ratio_mm2px"] = self.pixel_mm_ratio
+        else:
+            self.metrics["ratio_mm2px"] = np.nan
+
         self.__meas_pores__()
 
     def _analyze_edge(self, pts):
