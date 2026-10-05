@@ -62,6 +62,20 @@ cp.overlay()
 
 After instance initilaization, a pre-trained model is downloaded from HuggingFace repository, the model is stored in package folder for models. If the the NVIDIA GPU and CUDA toolkit is installed it will use cuda for segmentation. It can also use MPS backend on Apple Sillicon M1-M3 chips. The CrackenPy has basically two ways of use. Either on single image, where a specimen on dark background is placed, or on set of images. 
 
+Width-bias correction
+=============================
+A validation of the width measurement against 853 manual crack-width measurements (Dvořák et al., *Measurement*, 2026) showed that the predicted crack masks are systematically wider than the annotated reference by ≈ +1 px of full width (a one-pixel boundary rim). Since the bias is systematic, it can be subtracted from the mean crack thickness; this removes the 10–12 % relative overestimation of fine cracks near the ≈ 2.5 px quantification limit while leaving wide cracks essentially unchanged. The correction is off by default (backward compatible) and is enabled with:
+
+```Python
+cp.set_width_bias(1.0)        # full-width bias in px (1.0 = characterized value for the bundled model)
+metrics = cp.get_metrics()    # crack_thickness is now bias-corrected
+
+# or per call:
+metrics = cp.get_metrics(width_bias_px=1.0)
+```
+
+The applied value is recorded in the returned metrics as `width_bias_px`. Note the correction is characterized for the bundled model and the annotation convention of its training data; for custom models, characterize the bias with your own reference measurements before enabling it.
+
 Single image
 =============================
 The basic usage is t osegment the whole image, and all metrics and masks will represent the whole image. This can be done, if the whole image is either filled with specimen, or if on the image is only the 1 specimen. In both cases all metrics connected to the matrix of binder, cracks and pores are assessed as 1 body / specimen.

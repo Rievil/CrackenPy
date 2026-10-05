@@ -216,6 +216,15 @@ class CrackPy(CrackPlot):
     def set_ratio(self, length=None, width=None):
         self.cran.set_ratio(length=length, width=width)
 
+    def set_width_bias(self, bias_px=1.0):
+        """Enable correction of the systematic segmentation-induced width bias.
+
+        Subtracts `bias_px` (full width, in pixels; default 1.0 as
+        characterized for the bundled model) from the mean crack thickness
+        before the mm conversion. See CrackAnalyzer.set_width_bias.
+        """
+        self.cran.set_width_bias(bias_px=bias_px)
+
     def sep_masks(self):
         self.masks = self.separate_mask(self.mask)
         return self.masks
@@ -224,7 +233,9 @@ class CrackPy(CrackPlot):
         labels = ["back", "spec", "mat", "crack", "pore"]
         return labels
 
-    def get_metrics(self):
+    def get_metrics(self, width_bias_px=None):
+        if width_bias_px is not None:
+            self.cran.set_width_bias(bias_px=width_bias_px)
         self.sep_masks()
         self.cran.node_analysis()
         self.cran.basic_cnn_metrics()

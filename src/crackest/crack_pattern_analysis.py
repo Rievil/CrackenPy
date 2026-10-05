@@ -27,6 +27,28 @@ class CrackAnalyzer:
         self.pixel_mm_ratio_set = False
         self.min_number_of_crack_points = 20
         self.has_contour = False
+        self.width_bias_px = 0.0
+
+    def set_width_bias(self, bias_px=1.0):
+        """Enable correction of the systematic segmentation-induced width bias.
+
+        The validation of the width measurement against 853 manual crack-width
+        measurements (Dvorak et al., Measurement, 2026) showed that predicted
+        crack masks are systematically wider than the annotated reference by
+        approximately +1 px of full width (a one-pixel boundary rim; +0.5 px
+        end-to-end median). `bias_px` is subtracted from the mean crack
+        thickness (crack area / skeleton length, in px) before the conversion
+        to millimeters, which removes the 10-12 % relative overestimation of
+        fine cracks near the ~2.5 px quantification limit while leaving wide
+        cracks essentially unchanged.
+
+        Parameters
+        ----------
+        bias_px : float
+            Full-width bias in pixels to subtract (default 1.0, the value
+            characterized for the bundled model). Set 0.0 to disable.
+        """
+        self.width_bias_px = float(bias_px)
 
     def node_analysis(self):
         self.build_graph()
@@ -223,12 +245,18 @@ class CrackAnalyzer:
         crack_length = self.crack_skeleton.sum()
         crack_avg_thi = crack_area / crack_length
 
+        # correct the systematic segmentation-induced width bias (see
+        # set_width_bias); applied in px, before the mm conversion
+        if self.width_bias_px > 0 and crack_length > 0:
+            crack_avg_thi = max(crack_avg_thi - self.width_bias_px, 0.0)
+
         self.metrics["spec_area"] = (spec_area * self.pixel_mm_ratio,)
         self.metrics["mat_area"] = (mat_area * self.pixel_mm_ratio,)
         self.metrics["crack_ratio"] = (crack_ratio,)
         self.metrics["crack_length"] = (crack_length * self.pixel_mm_ratio,)
         self.metrics["crack_thickness"] = (crack_avg_thi * self.pixel_mm_ratio,)
         self.metrics["pore_area"] = (pore_area * self.pixel_mm_ratio,)
+        self.metrics["width_bias_px"] = self.width_bias_px
 
         if self.pixel_mm_ratio_set:
             self.metrics["ratio_mm2px"] = self.pixel_mm_ratio
