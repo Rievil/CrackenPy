@@ -1,6 +1,6 @@
 cff-version: "1.2.0"
 date-released: 2024-10-01
-message: "If you use this software, please cite it using these metadata."
+message: "If you use this software, please cite the research paper below (preferred citation)."
 title: "CrackenPy: Image segmentation tool for semantic segmentation of building material surfaces using deep learning"
 url: "https://github.com/Rievil/CrackenPy"
 authors: 
@@ -13,4 +13,28 @@ authors:
   - family-names: Kucharczykova
     given-names: Barbara
 doi: 10.5281/zenodo.13969747
-address: "Online"
+preferred-citation:
+  type: article
+  title: "Quantitative multi-class crack analysis in cementitious materials using convolutional neural networks"
+  authors:
+    - family-names: Dvořák
+      given-names: Richard
+    - family-names: Bílek
+      given-names: Vlastimil
+    - family-names: Lisztwan
+      given-names: Dominik
+    - family-names: Nápravník
+      given-names: Petr
+    - family-names: Krč
+      given-names: Rostislav
+    - family-names: Kucharczyková
+      given-names: Barbara
+  journal: "Measurement"
+  publisher:
+    name: Elsevier
+  volume: 295
+  start: 123831
+  year: 2027
+  issn: "0263-2241"
+  doi: 10.1016/j.measurement.2026.123831
+  url: "https://doi.org/10.1016/j.measurement.2026.123831"

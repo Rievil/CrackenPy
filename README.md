@@ -10,7 +10,7 @@ This package is dedicated to segment cracks, matrix and pores in testing specime
 - [Model](https://huggingface.co/rievil/crackenpy)
 - [Dataset](https://huggingface.co/datasets/rievil/crackenpy_dataset)
 
-_Please cite our research paper using the sidebar button when using CrackPy in your research project._
+_Please cite our research paper when using CrackenPy in your research project: R. Dvořák, V. Bílek, D. Lisztwan, P. Nápravník, R. Krč, B. Kucharczyková, Quantitative multi-class crack analysis in cementitious materials using convolutional neural networks, Measurement 295 (2027) 123831, [doi:10.1016/j.measurement.2026.123831](https://doi.org/10.1016/j.measurement.2026.123831). The sidebar button "Cite this repository" gives the same reference._
 
 The videos documenting the source training images are represented via videos on youtube playlist [Cracks in alkali activated binders](https://youtube.com/playlist?list=PLE4UJv3O5jqNp2Oaqw1vnGiE2zu80q-Xe&si=aJCcwjeDd9LQq3NA).
 
@@ -64,7 +64,7 @@ After instance initilaization, a pre-trained model is downloaded from HuggingFac
 
 Width-bias correction
 =============================
-A validation of the width measurement against 853 manual crack-width measurements (Dvořák et al., *Measurement*, 2026) showed that the predicted crack masks are systematically wider than the annotated reference by ≈ +1 px of full width (a one-pixel boundary rim). Since the bias is systematic, it can be subtracted from the mean crack thickness; this removes the 10–12 % relative overestimation of fine cracks near the ≈ 2.5 px quantification limit while leaving wide cracks essentially unchanged. The correction is off by default (backward compatible) and is enabled with:
+A validation of the width measurement against 853 manual crack-width measurements ([Dvořák et al., *Measurement* 295, 2027, 123831](https://doi.org/10.1016/j.measurement.2026.123831)) showed that the predicted crack masks are systematically wider than the annotated reference by ≈ +1 px of full width (a one-pixel boundary rim). Since the bias is systematic, it can be subtracted from the mean crack thickness; this removes the 10–12 % relative overestimation of fine cracks near the ≈ 2.5 px quantification limit while leaving wide cracks essentially unchanged. The correction is off by default (backward compatible) and is enabled with:
 
 ```Python
 cp.set_width_bias(1.0)        # full-width bias in px (1.0 = characterized value for the bundled model)
@@ -126,8 +126,24 @@ This package was written under the Czech Science Foundation, grant number 22-020
 
 Please cite our work
 ========================
+The research paper describing the toolkit, the dataset and the validation of the measurement (preferred citation):
 ```latex
-@misc {richard_dvorak_2024,
+@article{Dvorak_2027_CrackenPy,
+	author       = {Dvo{\v{r}}{\'a}k, Richard and B{\'i}lek, Vlastimil and Lisztwan, Dominik and N{\'a}pravn{\'i}k, Petr and Kr{\v{c}}, Rostislav and Kucharczykov{\'a}, Barbara},
+	title        = {Quantitative multi-class crack analysis in cementitious materials using convolutional neural networks},
+	journal      = {Measurement},
+	volume       = {295},
+	pages        = {123831},
+	year         = {2027},
+	issn         = {0263-2241},
+	doi          = {10.1016/j.measurement.2026.123831},
+	url          = {https://doi.org/10.1016/j.measurement.2026.123831}
+}
+```
+
+The model, the library and the dataset:
+```latex
+@misc {richard_dvorak_2024_model,
 	author       = { {Richard Dvorak} },
 	title        = { crackenpy (Revision 04ed02c) },
 	year         = 2024,
@@ -145,7 +161,7 @@ Please cite our work
 	year         = {2024}
 }
 
-@misc {richard_dvorak_2024,
+@misc {richard_dvorak_2024_dataset,
 	author       = { {Richard Dvorak} },
 	title        = { crackenpy_dataset (Revision ce5c857) },
 	year         = 2024,
