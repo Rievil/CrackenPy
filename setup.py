@@ -11,7 +11,7 @@ from setuptools import Extension, setup, find_packages
 
 setup(
     name="crackenpy",
-    version="0.1.85",
+    version="0.1.86",
     description="Library for detection of cracks on test specimens of building materials",
     author="Richard Dvorak, Vlastimil Bilek, Barbara Kucharczikova, Rostislav Krc",
     author_email="richard.dvorak@vutbr.cz",
@@ -29,6 +29,9 @@ setup(
         "wand>=0.6.13",
         "segmentation_models_pytorch>=0.3.3",
         "opencv-python>=4.8.0.76",
+        "huggingface_hub",
+        "torchvision",
+        "scipy",
     ],
     package_dir={"": "src"},
     package_data={

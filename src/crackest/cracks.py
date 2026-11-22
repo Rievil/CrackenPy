@@ -3,14 +3,18 @@ import cv2
 import numpy as np
 import os
 from PIL import Image as PImage
-import pkg_resources
 import segmentation_models_pytorch as smp
 import torch
 from torchvision import transforms as T
 
 from crackest.crack_pattern_analysis import CrackAnalyzer
 from crackest.crack_plot import CrackPlot
-from crackest.model_downloader import download_model, ONLINE_CRACKPY_MODELS
+from crackest.model_downloader import (
+    download_model,
+    models_folder,
+    ONLINE_CRACKPY_ENCODERS,
+    ONLINE_CRACKPY_MODELS,
+)
 
 os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
 
@@ -54,11 +58,13 @@ class CrackPy(CrackPlot):
         else:
             self.class_num = 5
 
-        if model_type is None:
-            self.model_type = "resnext50_32x4d"
-        else:
+        if model_type is not None:
             self.model_type = model_type
-        print(self.model_type)
+        elif model_path is None and str(model) in ONLINE_CRACKPY_ENCODERS:
+            # bundled online model: use the encoder its checkpoint was trained with
+            self.model_type = ONLINE_CRACKPY_ENCODERS[str(model)]
+        else:
+            self.model_type = "resnext50_32x4d"
         self.reg_props = (
             "area",
             "centroid",
@@ -101,9 +107,8 @@ class CrackPy(CrackPlot):
             # ===== Loading from web by default =====
             if model_path is None:
                 download_model(str(model))
-                self.default_model = pkg_resources.resource_filename(
-                    "crackpy_models",
-                    r"{:s}".format(ONLINE_CRACKPY_MODELS[str(model)]),
+                self.default_model = os.path.join(
+                    models_folder(), ONLINE_CRACKPY_MODELS[str(model)]
                 )
                 self.model_path = "{}".format(self.default_model)
             else:

@@ -1,5 +1,4 @@
 import os
-import pkg_resources
 
 import crackpy_models
 
@@ -9,17 +8,27 @@ ONLINE_CRACKPY_MODELS = {
     "1": "model2.pt",
 }
 
+# Encoder each online checkpoint was trained with
+ONLINE_CRACKPY_ENCODERS = {
+    "0": "resnext50_32x4d",
+    "1": "resnext101_32x8d",
+}
+
+
+def models_folder():
+    """Folder of the crackpy_models package, where checkpoints are stored."""
+    return os.path.dirname(crackpy_models.__file__)
+
 
 def download_model(key):
     from huggingface_hub import hf_hub_download
 
-    model = pkg_resources.resource_listdir("crackpy_models", "")
+    model = os.listdir(models_folder())
     online_models = ONLINE_CRACKPY_MODELS
     count = model.count(online_models[key])
 
     if count == 0:
-        module_path = crackpy_models.__file__
-        tar_folder = os.path.dirname(module_path)
+        tar_folder = models_folder()
 
         print(
             "Downloading deep learing model '{:s}' for module crackpy".format(
@@ -36,7 +45,7 @@ def download_model(key):
 
 
 def update_models():
-    model = pkg_resources.resource_listdir("crackpy_models", "")
+    model = os.listdir(models_folder())
     online_models = ONLINE_CRACKPY_MODELS
 
     count_d = 0
