@@ -1,4 +1,4 @@
-![](https://github.com/Rievil/CrackPy/blob/main/Examples/Plots/Example.png)
+![](https://raw.githubusercontent.com/Rievil/CrackenPy/main/Examples/Plots/Example.png)
 Image segmentation of building material surfaces using deep learning (CrackPy)
 =================================================================
 
@@ -97,7 +97,7 @@ ca.registr()
 ca.preview()
 
 ```
-![](https://github.com/Rievil/CrackPy/blob/main/Examples/Plots/Multiple_registr.png)
+![](https://raw.githubusercontent.com/Rievil/CrackenPy/main/Examples/Plots/Multiple_registr.png)
 
 Both CrackPy and SubSpecies class inherit plotting methods from class CrackPlot, so it is possible to use same plotting functions for both cases.
 
@@ -105,7 +105,7 @@ Both CrackPy and SubSpecies class inherit plotting methods from class CrackPlot,
 spec=ca.get_spec(specid=0,frame=50)
 spec.overlay()
 ```
-![](https://github.com/Rievil/CrackPy/blob/main/Examples/Plots/Subspec.png)
+![](https://raw.githubusercontent.com/Rievil/CrackenPy/main/Examples/Plots/Subspec.png)
 
 
 The same apply for the CrackAnalyzer, which is generating metrics out of image and its segmented mask. By this a development of metrics can be generated if the folder is given to CrackAn instead of single file. The segmentation in registr method is currently using the same model for recognizing how many specimens is on the image, as well for the segmnetation itself, so for the experiments it is recomended to keep the speicmens still on same spot. Otherwise it would need to segment whole image every time.

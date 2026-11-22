@@ -7,12 +7,24 @@ Created on Sun Jan 28 17:03:20 2024
 
 
 from setuptools import Extension, setup, find_packages
+from pathlib import Path
+
+# README is shown as the project description on the PyPI page
+long_description = (Path(__file__).parent / "README.md").read_text(encoding="utf-8")
 
 
 setup(
     name="crackenpy",
-    version="0.1.86",
+    version="0.1.87",
     description="Library for detection of cracks on test specimens of building materials",
+    long_description=long_description,
+    long_description_content_type="text/markdown",
+    url="https://github.com/Rievil/CrackenPy",
+    project_urls={
+        "Paper": "https://doi.org/10.1016/j.measurement.2026.123831",
+        "Model": "https://huggingface.co/rievil/crackenpy",
+        "Dataset": "https://huggingface.co/datasets/rievil/crackenpy_dataset",
+    },
     author="Richard Dvorak, Vlastimil Bilek, Barbara Kucharczikova, Rostislav Krc",
     author_email="richard.dvorak@vutbr.cz",
     packages=find_packages(where="src"),
